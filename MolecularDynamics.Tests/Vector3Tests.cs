@@ -21,32 +21,6 @@ namespace MolecularDynamics.Tests
         }
 
         [TestMethod]
-        public void InStackAllocation()
-        {
-            //arrange
-            //act
-            Vector3 v;
-
-            //assert
-            Assert.AreEqual(0.0, v.X);
-            Assert.AreEqual(0.0, v.Y);
-            Assert.AreEqual(0.0, v.Z);
-        }
-
-        [TestMethod]
-        public void DefaultConstructor()
-        {
-            //arrange
-            //act
-            Vector3 v = new Vector3();
-
-            //assert
-            Assert.AreEqual(0.0, v.X);
-            Assert.AreEqual(0.0, v.Y);
-            Assert.AreEqual(0.0, v.Z);
-        }
-
-        [TestMethod]
         public void CustomConstructor()
         {
             //arrange
