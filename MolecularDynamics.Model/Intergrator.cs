@@ -12,6 +12,8 @@ namespace MolecularDynamics.Model
         private double halfStep;
         private double g;
 
+        public List<Particle> Particles => particles;
+
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
         /// </summary>
@@ -58,7 +60,8 @@ namespace MolecularDynamics.Model
         private Vector3 Acceleration(int i)
         {
             Particle curr = particles[i];
-            Vector3 acc;
+            Particle other = null;
+            Vector3 acc = new Vector3();
             Vector3 r;
             Vector3 re;
             double n;
@@ -66,7 +69,8 @@ namespace MolecularDynamics.Model
 
             for (; j < i; j++)
             {
-                r = particles[j].Position - curr.Position;
+                other = particles[j];
+                r = other.Position - curr.Position;
                 n = r.Norm();
                 re = r / n;
 
@@ -77,7 +81,8 @@ namespace MolecularDynamics.Model
 
             for (; j < particles.Count; j++)
             {
-                r = particles[j].Position - curr.Position;
+                other = particles[j];
+                r = other.Position - curr.Position;
                 n = r.Norm();
                 re = r / n;
 
