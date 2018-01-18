@@ -1,13 +1,8 @@
-﻿using System;
+﻿using MolecularDynamics.Model;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using MolecularDynamics.Model;
 
 namespace MolecularDynamics.DesktopUI
 {
@@ -19,7 +14,7 @@ namespace MolecularDynamics.DesktopUI
         private int prevMouseX, prevMouseY;
         private double rotateSpeed = 0.5;
         private double scaleCoefficient = 0.05;
-        private double translateCoefficient = 0.01;
+        private double translateCoefficient = 0.1;
 
         private List<Particle> particles = new List<Particle>()
         {
@@ -27,21 +22,21 @@ namespace MolecularDynamics.DesktopUI
             {
                 Position = new Vector3(0.0, 0.0, 0.0),
                 InitialVelocity = (0.0, 0.0, 0.0),
-                Radius = 0.05,
+                Radius = 0.2,
                 Mass = 1
             },
             new Particle()
             {
-                Position = new Vector3(0.7, 0.0, 0.0),
+                Position = new Vector3(0.5, 0.0, 0.0),
                 InitialVelocity = (-2.5, 0.0, 0.0),
-                Radius = 0.05,
+                Radius = 0.2,
                 Mass = 1.2
             },
             new Particle()
             {
-                Position = new Vector3(0.0, 0.7, 0.0),
+                Position = new Vector3(0.0, 0.5, 0.0),
                 InitialVelocity = (0.0, -2.5, 0.0),
-                Radius = 0.1,
+                Radius = 0.2,
                 Mass = 1
             }
         };

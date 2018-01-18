@@ -65,10 +65,10 @@ namespace MolecularDynamics.DesktopUI
             double max = 2.0 * Math.PI;
             double step = max / 50;
 
+            GL.Begin(BeginMode.QuadStrip);
+
             for (double theta = 0.0; theta < max; theta += step)
             {
-                GL.Begin(BeginMode.QuadStrip);
-
                 double sinTheta = Math.Sin(theta);
                 double cosTheta = Math.Cos(theta);
 
@@ -91,9 +91,9 @@ namespace MolecularDynamics.DesktopUI
                     GL.Normal3(x, y, z);
                     GL.Vertex3(x + particle.Position.X, y + particle.Position.Y, z + particle.Position.Z);
                 }
-
-                GL.End();
             }
+
+            GL.End();
         }
     }
 }
