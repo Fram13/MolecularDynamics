@@ -68,7 +68,8 @@ namespace MolecularDynamics.Model
 
             for (; j < i; j++)
             {
-                r = particles[j].Position - curr.Position;
+                other = particles[j];
+                r = other.Position - curr.Position;
                 n = r.Norm();
                 re = r / n;
 
@@ -79,7 +80,8 @@ namespace MolecularDynamics.Model
 
             for (; j < particles.Count; j++)
             {
-                r = particles[j].Position - curr.Position;
+                other = particles[j];
+                r = other.Position - curr.Position;
                 n = r.Norm();
                 re = r / n;
 
