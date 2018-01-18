@@ -21,21 +21,21 @@ namespace MolecularDynamics.DesktopUI
             new Particle()
             {
                 Position = new Vector3(0.0, 0.0, 0.0),
-                InitialVelocity = (0.0, 0.0, 0.0),
+                InitialVelocity = (1.0, 0.0, 0.0),
                 Radius = 0.2,
                 Mass = 1
             },
             new Particle()
             {
                 Position = new Vector3(0.5, 0.0, 0.0),
-                InitialVelocity = (-2.5, 0.0, 0.0),
+                InitialVelocity = (1.1, -0.2, 0.0),
                 Radius = 0.2,
                 Mass = 1.2
             },
             new Particle()
             {
                 Position = new Vector3(0.0, 0.5, 0.0),
-                InitialVelocity = (0.0, -2.5, 0.0),
+                InitialVelocity = (1.3, 0.2, 0.0),
                 Radius = 0.2,
                 Mass = 1
             }
@@ -50,7 +50,7 @@ namespace MolecularDynamics.DesktopUI
 
         private void MainForm_Load(Object sender, EventArgs e)
         {
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.0025, 10);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
             intergrator.InitialStep();
 
             renderer = new Renderer(Color.White);
@@ -68,11 +68,6 @@ namespace MolecularDynamics.DesktopUI
         {
             intergrator.NextStep();
             glControl.Invalidate();
-        }
-
-        private void button1_Click(Object sender, EventArgs e)
-        {
-            timer.Enabled = true;
         }
 
         #region glControl event handlers
@@ -110,12 +105,12 @@ namespace MolecularDynamics.DesktopUI
         {
             switch (e.KeyCode)
             {
-                case Keys.Add:
+                case Keys.E:
                     renderer.Scale += scaleCoefficient;
                     glControl.Invalidate();
                     break;
 
-                case Keys.Subtract:
+                case Keys.Q:
                     if (renderer.Scale - scaleCoefficient > 0.0)
                     {
                         renderer.Scale -= scaleCoefficient;
@@ -124,28 +119,42 @@ namespace MolecularDynamics.DesktopUI
                     break;
 
                 case Keys.W:
-                    renderer.TranslateY += translateCoefficient;
-                    glControl.Invalidate();
-                    break;
-
-                case Keys.S:
                     renderer.TranslateY -= translateCoefficient;
                     glControl.Invalidate();
                     break;
 
+                case Keys.S:
+                    renderer.TranslateY += translateCoefficient;
+                    glControl.Invalidate();
+                    break;
+
                 case Keys.A:
-                    renderer.TranslateX -= translateCoefficient;
+                    renderer.TranslateX += translateCoefficient;
                     glControl.Invalidate();
                     break;
 
                 case Keys.D:
-                    renderer.TranslateX += translateCoefficient;
+                    renderer.TranslateX -= translateCoefficient;
                     glControl.Invalidate();
                     break;
             }
         }
 
         #endregion glControl event handlers
+
+        private void Button1_Click(Object sender, EventArgs e)
+        {
+            if (timer.Enabled)
+            {
+                timer.Enabled = false;
+                button1.Text = "Start";
+            }
+            else
+            {
+                timer.Enabled = true;
+                button1.Text = "Stop";
+            }
+        }
 
         #endregion Event handlers
     }
