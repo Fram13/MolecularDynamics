@@ -30,42 +30,48 @@
         {
             this.components = new System.ComponentModel.Container();
             this.glControl = new OpenTK.GLControl();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // glControl
             // 
+            this.glControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.glControl.BackColor = System.Drawing.Color.Black;
-            this.glControl.Location = new System.Drawing.Point(13, 13);
+            this.glControl.Location = new System.Drawing.Point(12, 12);
             this.glControl.Name = "glControl";
-            this.glControl.Size = new System.Drawing.Size(259, 237);
+            this.glControl.Size = new System.Drawing.Size(755, 778);
             this.glControl.TabIndex = 0;
             this.glControl.VSync = false;
-            this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(GLControl_Paint);
-            this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(GlControl_MouseMove);
-            this.glControl.MouseWheel += new System.Windows.Forms.MouseEventHandler(GlControl_MouseWheel);
+            this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.GlControl_Paint);
+            this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyDown);
+            this.glControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseDown);
+            this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseMove);
+            // 
+            // timer
+            // 
+            this.timer.Interval = 25;
+            this.timer.Tick += new System.EventHandler(this.Timer_Tick);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.ClientSize = new System.Drawing.Size(785, 805);
             this.Controls.Add(this.glControl);
             this.Name = "MainForm";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.ResumeLayout(false);
-            this.Load += new System.EventHandler(MainForm_Load);
-            this.Resize += new System.EventHandler(MainForm_Resize);
-            //
-            // timer1
-            //
-            this.timer1.Tick += new System.EventHandler(Timer1_Tick);
+
         }
 
         #endregion
 
         private OpenTK.GLControl glControl;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer;
     }
 }
 

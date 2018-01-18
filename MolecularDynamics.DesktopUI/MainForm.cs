@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
 using MolecularDynamics.Model;
 
 namespace MolecularDynamics.DesktopUI
@@ -15,8 +14,37 @@ namespace MolecularDynamics.DesktopUI
     public partial class MainForm : Form
     {
         private ParticleTrajectoryIntegrator intergrator;
-        private Renderer renderer;
-        private List<Particle> objects;
+        private Renderer renderer;        
+
+        private int prevMouseX, prevMouseY;
+        private double rotateSpeed = 0.5;
+        private double scaleCoefficient = 0.05;
+        private double translateCoefficient = 0.01;
+
+        private List<Particle> particles = new List<Particle>()
+        {
+            new Particle()
+            {
+                Position = new Vector3(0.0, 0.0, 0.0),
+                InitialVelocity = (0.0, 0.0, 0.0),
+                Radius = 0.05,
+                Mass = 1
+            },
+            new Particle()
+            {
+                Position = new Vector3(0.7, 0.0, 0.0),
+                InitialVelocity = (-2.5, 0.0, 0.0),
+                Radius = 0.05,
+                Mass = 1.2
+            },
+            new Particle()
+            {
+                Position = new Vector3(0.0, 0.7, 0.0),
+                InitialVelocity = (0.0, -2.5, 0.0),
+                Radius = 0.1,
+                Mass = 1
+            }
+        };
 
         public MainForm()
         {
@@ -27,106 +55,102 @@ namespace MolecularDynamics.DesktopUI
 
         private void MainForm_Load(Object sender, EventArgs e)
         {
-            renderer = new Renderer();
-
-            objects = new List<Particle>()
-            {
-                new Particle()
-                {
-                    Position = new Vector3(0.0, 0.0, 0.0),
-                    InitialVelocity = (0.0, 0.0, 0.0),
-                    Radius = 0.2,
-                    Mass = 1
-                },
-                new Particle()
-                {
-                    Position = new Vector3(0.7, 0.0, 0.0),
-                    InitialVelocity = (0.0, 0.0, 0.0),
-                    Radius = 0.2,
-                    Mass = 1.2
-                },
-                new Particle()
-                {
-                    Position = new Vector3(0.0, 0.7, 0.0),
-                    InitialVelocity = (0.0, 0.0, 0.0),
-                    Radius = 0.2,
-                    Mass = 1
-                }
-            };
-
-            intergrator = new ParticleTrajectoryIntegrator(objects, 0.5, 10);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.0025, 10);
             intergrator.InitialStep();
 
-            GL.ClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-            GL.Enable(EnableCap.DepthTest);
+            renderer = new Renderer(Color.White);
+
             MainForm_Resize(sender, e);
-            timer1.Interval = 1000;
-            timer1.Enabled = true;
         }
 
         private void MainForm_Resize(Object sender, EventArgs e)
         {
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(-1, 1, -1, 1, -1, 1);
-            GL.MatrixMode(MatrixMode.Modelview);
+            renderer.SetViewport(glControl.Width, glControl.Height);
             glControl.Invalidate();
         }
 
-        double AngleX, AngleY;//, AngleZ;
-
-        private void GLControl_Paint(Object sender, PaintEventArgs e)
+        private void Timer_Tick(Object sender, EventArgs e)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.Enable(EnableCap.Lighting);
-            GL.Enable(EnableCap.Light0);
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            intergrator.NextStep();
+            glControl.Invalidate();
+        }
 
-            foreach (var s in intergrator.Particles)
-            {
-                renderer.Draw(s);
-            }
+        private void button1_Click(Object sender, EventArgs e)
+        {
+            timer.Enabled = true;
+        }
 
-            GL.Disable(EnableCap.Lighting);
+        #region glControl event handlers
 
-            // поворот изображения
-            GL.LoadIdentity();
-            GL.Rotate(AngleX, 1.0, 0.0, 0.0);
-            GL.Rotate(AngleY, 0.0, 1.0, 0.0);
-            //GL.Rotate(AngleZ, 0.0, 0.0, 1.0);
-
-            GL.Scale(scale, scale, scale);
-
-            // формирование осей координат
-            GL.Flush();
-            GL.Finish();
+        private void GlControl_Paint(Object sender, PaintEventArgs e)
+        {
+            renderer.Paint(particles);
             glControl.SwapBuffers();
+        }
+
+        private void GlControl_MouseDown(Object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                prevMouseX = e.X;
+                prevMouseY = e.Y;
+            }
         }
 
         private void GlControl_MouseMove(Object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                AngleX += e.X / 100f;
-                AngleY += e.Y / 100f;
+                renderer.RotateY += (e.X - prevMouseX) * rotateSpeed;
+                prevMouseX = e.X;
+
+                renderer.RotateX += (e.Y - prevMouseY) * rotateSpeed;
+                prevMouseY = e.Y;
+
                 glControl.Invalidate();
             }
         }
 
-        private double scale = 1.0;
-
-        private void GlControl_MouseWheel(Object sender, MouseEventArgs e)
+        private void glControl_KeyDown(Object sender, KeyEventArgs e)
         {
-            scale += e.Delta / 1000.0;
-            glControl.Invalidate();
+            switch (e.KeyCode)
+            {
+                case Keys.Add:
+                    renderer.Scale += scaleCoefficient;
+                    glControl.Invalidate();
+                    break;
+
+                case Keys.Subtract:
+                    if (renderer.Scale - scaleCoefficient > 0.0)
+                    {
+                        renderer.Scale -= scaleCoefficient;
+                    }
+                    glControl.Invalidate();
+                    break;
+
+                case Keys.W:
+                    renderer.TranslateY += translateCoefficient;
+                    glControl.Invalidate();
+                    break;
+
+                case Keys.S:
+                    renderer.TranslateY -= translateCoefficient;
+                    glControl.Invalidate();
+                    break;
+
+                case Keys.A:
+                    renderer.TranslateX -= translateCoefficient;
+                    glControl.Invalidate();
+                    break;
+
+                case Keys.D:
+                    renderer.TranslateX += translateCoefficient;
+                    glControl.Invalidate();
+                    break;
+            }
         }
 
-        private void Timer1_Tick(Object sender, EventArgs e)
-        {
-            intergrator.NextStep();
-            glControl.Invalidate();
-        }
+        #endregion glControl event handlers
 
         #endregion Event handlers
     }
