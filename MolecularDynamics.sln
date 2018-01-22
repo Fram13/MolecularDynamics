@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MolecularDynamics.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.DesktopUI", "MolecularDynamics.DesktopUI\MolecularDynamics.DesktopUI.csproj", "{416EE186-85DF-43E1-AECF-8818F55842AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.DesktopUI", "MolecularDynamics.DesktopUI\MolecularDynamics.DesktopUI.csproj", "{416EE186-85DF-43E1-AECF-8818F55842AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
