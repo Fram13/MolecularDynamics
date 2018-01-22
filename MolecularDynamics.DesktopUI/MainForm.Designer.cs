@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.glControl = new OpenTK.GLControl();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.SuspendLayout();
             // 
             // glControl
@@ -72,6 +73,7 @@
 
         private OpenTK.GLControl glControl;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.ColorDialog colorDialog1;
     }
 }
 

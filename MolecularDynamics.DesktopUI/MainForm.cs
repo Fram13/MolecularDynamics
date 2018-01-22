@@ -12,7 +12,7 @@ namespace MolecularDynamics.DesktopUI
         private Renderer renderer;        
 
         private int prevMouseX, prevMouseY;
-        private double rotateSpeed = 0.5;
+        private double rotateSpeed = 0.1;
         private double scaleCoefficient = 0.05;
         private double translateCoefficient = 0.1;
 
@@ -56,6 +56,7 @@ namespace MolecularDynamics.DesktopUI
             renderer = new Renderer(Color.White);
 
             MainForm_Resize(sender, e);
+            //timer.Enabled = true;
         }
 
         private void MainForm_Resize(Object sender, EventArgs e)
@@ -96,10 +97,10 @@ namespace MolecularDynamics.DesktopUI
         {
             if (e.Button == MouseButtons.Left)
             {
-                renderer.RotateY += (e.X - prevMouseX) * rotateSpeed;
+                renderer.RotateY((e.X - prevMouseX) * rotateSpeed * Math.PI / 180.0);
                 prevMouseX = e.X;
 
-                renderer.RotateX += (e.Y - prevMouseY) * rotateSpeed;
+                renderer.RotateX((e.Y - prevMouseY) * rotateSpeed * Math.PI / 180.0);
                 prevMouseY = e.Y;
 
                 glControl.Invalidate();
@@ -110,37 +111,42 @@ namespace MolecularDynamics.DesktopUI
         {
             switch (e.KeyCode)
             {
-                case Keys.Add:
-                    renderer.Scale += scaleCoefficient;
+                case Keys.E:
+                    renderer.Scale(1.0 + scaleCoefficient);
                     glControl.Invalidate();
                     break;
 
-                case Keys.Subtract:
-                    if (renderer.Scale - scaleCoefficient > 0.0)
-                    {
-                        renderer.Scale -= scaleCoefficient;
-                    }
+                case Keys.Q:
+                    renderer.Scale(1.0 - scaleCoefficient);
                     glControl.Invalidate();
                     break;
 
                 case Keys.W:
-                    renderer.TranslateY += translateCoefficient;
+                    //renderer.Translate(0.0, translateCoefficient, 0.0);
+                    renderer.RotateX(5.0 / 180.0 * Math.PI);
                     glControl.Invalidate();
                     break;
 
                 case Keys.S:
-                    renderer.TranslateY -= translateCoefficient;
+                    //renderer.Translate(0.0, -translateCoefficient, 0.0);
+                    renderer.RotateX(-5.0 / 180.0 * Math.PI);
                     glControl.Invalidate();
                     break;
 
                 case Keys.A:
-                    renderer.TranslateX -= translateCoefficient;
+                    //renderer.Translate(-translateCoefficient, 0.0, 0.0);
+                    renderer.RotateY(5.0 / 180.0 * Math.PI);
                     glControl.Invalidate();
                     break;
 
                 case Keys.D:
-                    renderer.TranslateX += translateCoefficient;
+                    //renderer.Translate(translateCoefficient, 0.0, 0.0);
+                    renderer.RotateY(-5.0 / 180.0 * Math.PI);
                     glControl.Invalidate();
+                    break;
+
+                case Keys.Space:
+                    timer.Enabled = !timer.Enabled;
                     break;
             }
         }
