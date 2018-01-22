@@ -65,6 +65,7 @@ namespace MolecularDynamics.Model
             Vector3 re;
             double n;
             int j = 0;
+            Particle other;
 
             for (; j < i; j++)
             {
