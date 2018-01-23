@@ -8,10 +8,11 @@ namespace MolecularDynamics.DesktopUI
 {
     public partial class MainForm : Form
     {
+        private bool glControlLoaded;
         private ParticleTrajectoryIntegrator intergrator;
         private Renderer renderer;
 
-        private readonly double toRadians = Math.PI / 180.0;
+        private readonly double toRadians = Math.PI / 180.0;        
         private int prevMouseX, prevMouseY;
         private double rotateCoefficient = 0.15;
         private double scaleCoefficient = 0.1;
@@ -64,18 +65,21 @@ namespace MolecularDynamics.DesktopUI
 
         private void MainForm_Load(Object sender, EventArgs e)
         {
+            glControlLoaded = true;
             renderer = new Renderer(Color.White);
-
             intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
-            intergrator.InitialStep();            
+            intergrator.InitialStep();
 
             MainForm_Resize(sender, e);
         }
 
         private void MainForm_Resize(Object sender, EventArgs e)
         {
-            renderer.SetViewport(glControl.Width, glControl.Height);
-            glControl.Invalidate();
+            if (glControlLoaded)
+            {
+                renderer.SetViewport(glControl.Width, glControl.Height);
+                glControl.Invalidate(); 
+            }
         }
 
         private void Timer_Tick(Object sender, EventArgs e)
