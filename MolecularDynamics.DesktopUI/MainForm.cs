@@ -67,7 +67,7 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
             renderer = new Renderer(Color.White);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1, 2);
             intergrator.InitialStep();
 
             MainForm_Resize(sender, e);
