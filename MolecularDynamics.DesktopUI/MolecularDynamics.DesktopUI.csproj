@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{416EE186-85DF-43E1-AECF-8818F55842AE}</ProjectGuid>
+    <ProjectGuid>{D7433C88-163B-4BD9-B6D0-D9BB259ACA99}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>MolecularDynamics.DesktopUI</RootNamespace>
     <AssemblyName>MolecularDynamics.DesktopUI</AssemblyName>
@@ -46,6 +46,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>

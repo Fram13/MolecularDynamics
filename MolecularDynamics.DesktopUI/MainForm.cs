@@ -9,12 +9,13 @@ namespace MolecularDynamics.DesktopUI
     public partial class MainForm : Form
     {
         private ParticleTrajectoryIntegrator intergrator;
-        private Renderer renderer;        
+        private Renderer renderer;
 
+        private readonly double toRadians = Math.PI / 180.0;
         private int prevMouseX, prevMouseY;
-        private double rotateSpeed = 0.1;
-        private double scaleCoefficient = 0.05;
-        private double translateCoefficient = 0.1;
+        private double rotateCoefficient = 0.15;
+        private double scaleCoefficient = 0.1;
+        private double translateCoefficient = 0.05;
 
         private List<Particle> particles = new List<Particle>()
         {
@@ -30,12 +31,25 @@ namespace MolecularDynamics.DesktopUI
                 Position = new Vector3(0.5, 0.0, 0.0),
                 InitialVelocity = (1.1, -0.2, 0.0),
                 Radius = 0.2,
-                Mass = 1.2
+                Mass = 1
             },
             new Particle()
             {
                 Position = new Vector3(0.0, 0.5, 0.0),
                 InitialVelocity = (1.3, 0.2, 0.0),
+                Radius = 0.2,
+                Mass = 1
+            },
+            new Particle()
+            {
+                Position = new Vector3(0.7, 0.5, 0.0),
+                InitialVelocity = (-1.3, 0.2, 0.0),
+                Radius = 0.2,
+                Mass = 1
+            },new Particle()
+            {
+                Position = new Vector3(-0.5, 0.5, 0.0),
+                InitialVelocity = (1.3, -0.2, 0.0),
                 Radius = 0.2,
                 Mass = 1
             }
@@ -50,13 +64,12 @@ namespace MolecularDynamics.DesktopUI
 
         private void MainForm_Load(Object sender, EventArgs e)
         {
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
-            intergrator.InitialStep();
-
             renderer = new Renderer(Color.White);
 
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
+            intergrator.InitialStep();            
+
             MainForm_Resize(sender, e);
-            //timer.Enabled = true;
         }
 
         private void MainForm_Resize(Object sender, EventArgs e)
@@ -92,10 +105,10 @@ namespace MolecularDynamics.DesktopUI
         {
             if (e.Button == MouseButtons.Left)
             {
-                renderer.RotateY((e.X - prevMouseX) * rotateSpeed * Math.PI / 180.0);
+                renderer.RotateY((e.X - prevMouseX) * rotateCoefficient * toRadians);
                 prevMouseX = e.X;
 
-                renderer.RotateX((e.Y - prevMouseY) * rotateSpeed * Math.PI / 180.0);
+                renderer.RotateX((e.Y - prevMouseY) * rotateCoefficient * toRadians);
                 prevMouseY = e.Y;
 
                 glControl.Invalidate();
@@ -107,26 +120,32 @@ namespace MolecularDynamics.DesktopUI
             switch (e.KeyCode)
             {
                 case Keys.E:
+                    renderer.Scale(1.0 + scaleCoefficient);
+                    glControl.Invalidate();
                     break;
 
                 case Keys.Q:
+                    renderer.Scale(1.0 - scaleCoefficient);
+                    glControl.Invalidate();
                     break;
 
                 case Keys.W:
+                    renderer.Translate(0.0, -translateCoefficient);
                     glControl.Invalidate();
                     break;
 
                 case Keys.S:
+                    renderer.Translate(0.0, translateCoefficient);
                     glControl.Invalidate();
                     break;
 
                 case Keys.A:
-                    renderer.RotateY(5.0 / 180.0 * Math.PI);
+                    renderer.Translate(translateCoefficient, 0.0);
                     glControl.Invalidate();
                     break;
 
                 case Keys.D:
-                    renderer.RotateY(-5.0 / 180.0 * Math.PI);
+                    renderer.Translate(-translateCoefficient, 0.0);
                     glControl.Invalidate();
                     break;
 
@@ -137,20 +156,6 @@ namespace MolecularDynamics.DesktopUI
         }
 
         #endregion glControl event handlers
-
-        private void Button1_Click(Object sender, EventArgs e)
-        {
-            if (timer.Enabled)
-            {
-                timer.Enabled = false;
-                button1.Text = "Start";
-            }
-            else
-            {
-                timer.Enabled = true;
-                button1.Text = "Stop";
-            }
-        }
 
         #endregion Event handlers
     }

@@ -1,6 +1,5 @@
 ﻿using MolecularDynamics.Model;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -16,25 +15,20 @@ namespace MolecularDynamics.DesktopUI
         {
             GL.ClearColor(clearColor);
             GL.Enable(EnableCap.DepthTest);
+
             view = Matrix4d.Identity;
         }
 
-        public void Translate(double dx, double dy, double dz)
+        public void Translate(double dx, double dy)
         {
-            Vector3d center = new Vector3d(dx, dy, -1.0 + dz);
-            Vector3d eye = new Vector3d(dx, dy, dz);
-            Vector3d up = new Vector3d(dx, dy + 1.0, dz);
-
-            //view = Matrix4d.LookAt(eye, center, up) * view;
+            view = view * Matrix4d.CreateTranslation(dx, dy, 0.0);
         }
 
         public void Scale(double coefficient)
         {
-            Vector3d center = new Vector3d(0.0, 0.0, -coefficient);
-            Vector3d eye = new Vector3d(0.0, 0.0, 0.0);
-            Vector3d up = new Vector3d(0.0, coefficient, 0.0);
-
-            //view = Matrix4d.LookAt(eye, center, up) * view;
+            Matrix4d scale = Matrix4d.Identity;
+            scale.M11 = scale.M22 = scale.M33 = coefficient;
+            view = view * scale;
         }
 
         public void RotateX(double angle)
@@ -47,14 +41,12 @@ namespace MolecularDynamics.DesktopUI
             view = view * Matrix4d.CreateRotationY(angle);
         }
 
-        public void RotateZ(double angle)
-        {
-            
-        }
-
         public void SetViewport(int width, int height)
         {
             GL.Viewport(0, 0, width, height);
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadIdentity();
+            GL.Ortho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
         }
 
         public void Paint(IEnumerable<Particle> particles)
@@ -71,30 +63,10 @@ namespace MolecularDynamics.DesktopUI
 
             GL.Disable(EnableCap.Lighting);
 
-            //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            //GL.MatrixMode(MatrixMode.Projection);
-            //GL.LoadIdentity();
-            //GL.Ortho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-            //GL.Begin(BeginMode.Lines);
-
-            //GL.Color3(Color.Red);
-            //GL.Vertex3(0.0, 0.0, 0.0);
-            //GL.Vertex3(0.8, 0.0, 0.0);
-
-            //GL.Color3(Color.Green);
-            //GL.Vertex3(0.0, 0.0, 0.0);
-            //GL.Vertex3(0.0, 0.8, 0.0);
-
-            //GL.Color3(Color.Blue);
-            //GL.Vertex3(0.0, 0.0, 0.0);
-            //GL.Vertex3(0.0, 0.0, 0.8);
-
-            //GL.End();
-
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref view);
+            GL.Flush();
+            GL.Finish();
         }
 
         private void PaintParticle(Particle particle)
