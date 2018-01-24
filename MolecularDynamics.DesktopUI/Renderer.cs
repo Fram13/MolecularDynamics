@@ -72,7 +72,7 @@ namespace MolecularDynamics.DesktopUI
         private void PaintParticle(Particle particle)
         {
             double max = 2.0 * Math.PI;
-            double step = max / 50;
+            double step = max / 5;
 
             GL.Begin(BeginMode.QuadStrip);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MolecularDynamics.Model
 {
@@ -8,29 +9,37 @@ namespace MolecularDynamics.Model
         private class TrajectoryIntegrationThread
         {
             private Thread thread;
-            private int startIndex;
-            private int endIndex;
             private bool needCalculate;
 
             public TrajectoryIntegrationThread(ParticleTrajectoryIntegrator integrator, int startIndex, int endIndex)
             {
-                this.thread = new Thread(new ParameterizedThreadStart(args =>
+                //thread = new Thread(new ParameterizedThreadStart(args =>
+                //{
+                //    while (true)
+                //    {
+                //        if (needCalculate)
+                //        {
+                //            integrator.NextStep(args);
+                //            needCalculate = false;
+                //        }
+                //    }
+                //}));
+
+                //thread.Name = "Start index: " + startIndex;
+                //thread.IsBackground = true;
+                //thread.Start(Tuple.Create(startIndex, endIndex));
+
+                Task.Run(() =>
                 {
                     while (true)
                     {
                         if (needCalculate)
                         {
-                            integrator.NextStep(args);
+                            integrator.NextStep(startIndex, endIndex);
                             needCalculate = false;
                         }
                     }
-                }));
-
-                this.thread.Name = "Start index: " + startIndex;
-                this.startIndex = startIndex;
-                this.endIndex = endIndex;
-
-                thread.Start(Tuple.Create(startIndex, endIndex));
+                });
             }
 
             public void NextStep()

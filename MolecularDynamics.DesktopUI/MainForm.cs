@@ -8,8 +8,9 @@ namespace MolecularDynamics.DesktopUI
 {
     public partial class MainForm : Form
     {
-        private bool glControlLoaded;
+        private ParticleGenerator generator;
         private ParticleTrajectoryIntegrator intergrator;
+        private bool glControlLoaded;
         private Renderer renderer;
 
         private readonly double toRadians = Math.PI / 180.0;        
@@ -18,43 +19,44 @@ namespace MolecularDynamics.DesktopUI
         private double scaleCoefficient = 0.1;
         private double translateCoefficient = 0.05;
 
-        private List<Particle> particles = new List<Particle>()
-        {
-            new Particle()
-            {
-                Position = new Vector3(0.0, 0.0, 0.0),
-                InitialVelocity = (1.0, 0.0, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.5, 0.0, 0.0),
-                InitialVelocity = (1.1, -0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.0, 0.5, 0.0),
-                InitialVelocity = (1.3, 0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.7, 0.5, 0.0),
-                InitialVelocity = (-1.3, 0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },new Particle()
-            {
-                Position = new Vector3(-0.5, 0.5, 0.0),
-                InitialVelocity = (1.3, -0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            }
-        };
+        private IList<Particle> particles;// = new List<Particle>()
+        //{
+        //    new Particle()
+        //    {
+        //        Position = new Vector3(0.0, 0.0, 0.0),
+        //        InitialVelocity = (1.0, 0.0, 0.0),
+        //        Radius = 0.2,
+        //        Mass = 1
+        //    },
+        //    new Particle()
+        //    {
+        //        Position = new Vector3(0.5, 0.0, 0.0),
+        //        InitialVelocity = (1.1, -0.2, 0.0),
+        //        Radius = 0.2,
+        //        Mass = 1
+        //    },
+        //    new Particle()
+        //    {
+        //        Position = new Vector3(0.0, 0.5, 0.0),
+        //        InitialVelocity = (1.3, 0.2, 0.0),
+        //        Radius = 0.2,
+        //        Mass = 1
+        //    },
+        //    new Particle()
+        //    {
+        //        Position = new Vector3(0.7, 0.5, 0.0),
+        //        InitialVelocity = (-1.3, 0.2, 0.0),
+        //        Radius = 0.2,
+        //        Mass = 1
+        //    },
+        //    new Particle()
+        //    {
+        //        Position = new Vector3(-0.5, 0.5, 0.0),
+        //        InitialVelocity = (1.3, -0.2, 0.0),
+        //        Radius = 0.2,
+        //        Mass = 1
+        //    }
+        //};
 
         public MainForm()
         {
@@ -67,6 +69,9 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
             renderer = new Renderer(Color.White);
+
+            generator = new ParticleGenerator();
+            particles = generator.Generate3DGrid(10, 10, 10);
             intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1, 2);
             intergrator.InitialStep();
 
@@ -115,7 +120,10 @@ namespace MolecularDynamics.DesktopUI
                 renderer.RotateX((e.Y - prevMouseY) * rotateCoefficient * toRadians);
                 prevMouseY = e.Y;
 
-                glControl.Invalidate();
+                if (!timer.Enabled)
+                {
+                    glControl.Invalidate();
+                }
             }
         }
 
@@ -125,32 +133,62 @@ namespace MolecularDynamics.DesktopUI
             {
                 case Keys.E:
                     renderer.Scale(1.0 + scaleCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.Q:
                     renderer.Scale(1.0 - scaleCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.W:
                     renderer.Translate(0.0, -translateCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.S:
                     renderer.Translate(0.0, translateCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.A:
                     renderer.Translate(translateCoefficient, 0.0);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.D:
                     renderer.Translate(-translateCoefficient, 0.0);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.Space:

@@ -8,7 +8,7 @@ namespace MolecularDynamics.Model
     /// </summary>
     public partial class ParticleTrajectoryIntegrator
     {
-        private List<Particle> particles;
+        private IList<Particle> particles;
         private double step;
         private double halfStep;
         private double g;
@@ -20,8 +20,9 @@ namespace MolecularDynamics.Model
         /// </summary>
         /// <param name="particles">Список частиц, образующих модерируемое вещество.</param>
         /// <param name="step">Шаг интегрирования.</param>
+        /// <param name="threadCount"></param>
         /// <param name="g"></param>
-        public ParticleTrajectoryIntegrator(List<Particle> particles, double step, double g, int threadCount)
+        public ParticleTrajectoryIntegrator(IList<Particle> particles, double step, double g, int threadCount)
         {
             this.particles = particles;
             this.step = step;
@@ -91,6 +92,16 @@ namespace MolecularDynamics.Model
             int startIndex = (args as Tuple<int, int>).Item1;
             int endIndex = (args as Tuple<int, int>).Item2;
 
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                Particle curr = particles[i];
+                Vector3 acc = Acceleration(i);
+                curr.NextPosition = 2.0 * curr.Position - curr.PreviousPosition + acc * step * step;
+            }
+        }
+
+        private void NextStep(int startIndex, int endIndex)
+        {
             for (int i = startIndex; i < endIndex; i++)
             {
                 Particle curr = particles[i];
