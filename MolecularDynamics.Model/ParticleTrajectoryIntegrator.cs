@@ -1,133 +1,134 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MolecularDynamics.Model
 {
     /// <summary>
-    /// Представляет интегратор траекторий частиц.
+    /// Представляет интегратор уравнений движения частиц.
     /// </summary>
     public partial class ParticleTrajectoryIntegrator
     {
+        #region Fields
+
+        private TrajectoryIntegrationThread[] threads;
         private IList<Particle> particles;
         private double step;
         private double halfStep;
-        private double g;
+        private double stepSquared;
+        private double interactionCoefficient;
 
-        private TrajectoryIntegrationThread[] threads;
+        #endregion Fields
+
+        #region Constructors
 
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
         /// </summary>
         /// <param name="particles">Список частиц, образующих модерируемое вещество.</param>
         /// <param name="step">Шаг интегрирования.</param>
-        /// <param name="threadCount"></param>
-        /// <param name="g"></param>
-        public ParticleTrajectoryIntegrator(IList<Particle> particles, double step, double g, int threadCount)
+        /// <param name="interactionCoefficient">Коэффициент взаимодействия между частицами.</param>
+        /// <param name="threadCount">Количество потоков интегрирования.</param>
+        public ParticleTrajectoryIntegrator(IList<Particle> particles, double step, double interactionCoefficient, int threadCount)
         {
             this.particles = particles;
             this.step = step;
             halfStep = step / 2.0;
-            this.g = g;
-
-            int count = particles.Count;
-            int particlesPerThread = count / threadCount;
-
-            if (particles.Count % threadCount != 0)
-            {
-                threadCount++;
-            }
+            stepSquared = step * step;
+            this.interactionCoefficient = interactionCoefficient;
 
             threads = new TrajectoryIntegrationThread[threadCount];
-
-            int index = 0;
-
-            for (int i = 0; i < threads.Length; i++)
-            {
-                if (count > particlesPerThread)
-                {
-                    threads[i] = new TrajectoryIntegrationThread(this, index, index + particlesPerThread);
-                    index += particlesPerThread;
-                    count -= particlesPerThread;
-                }
-                else
-                {
-                    threads[i] = new TrajectoryIntegrationThread(this, index, index + count);
-                }
-            }
+            InitializeThreads(particles.Count, threadCount);
+            InitialStep();
         }
 
-        public void InitialStep()
+        #endregion Constructors
+
+        #region Private methods
+
+        /// <summary>
+        /// Инициализирует потоки интегрирования уравнений движения частиц.
+        /// </summary>
+        /// <param name="particleCount">Количество частиц.</param>
+        /// <param name="threadCount">Количетсво потоков.</param>
+        private void InitializeThreads(int particleCount, int threadCount)
+        {
+            int particlesPerThread = particleCount / threadCount;
+            int rest = particleCount % threadCount;
+            int start = 0;
+
+            for (int i = 0; i < threadCount - 1; i++)
+            {
+                threads[i] = new TrajectoryIntegrationThread(this, start, start + particlesPerThread);
+                start += particlesPerThread;
+            }
+
+            threads[threadCount - 1] = new TrajectoryIntegrationThread(this, start, start + particlesPerThread + rest);
+        }
+
+        /// <summary>
+        /// Выполняет начальный шаг интегрирования уравнений движения частиц.
+        /// </summary>
+        private void InitialStep()
         {
             Vector3[] velocity = new Vector3[particles.Count];
+            Vector3 acc;
+            Particle curr;
 
             for (int i = 0; i < particles.Count; i++)
             {
-                Vector3 acc = Acceleration(i);
-                Particle curr = particles[i];
+                acc = Acceleration(i);
+                curr = particles[i];
 
                 velocity[i] = curr.InitialVelocity + acc * step;
                 curr.NextPosition = curr.Position + velocity[i] * step;
             }
 
-            CompleteStep();
+            RunCompleteStepInThreads();
+            WaitThreads();
         }
 
-        public void NextStep()
-        {
-            foreach (var thread in threads)
-            {
-                thread.NextStep();
-            }
-
-            foreach (var thread in threads)
-            {
-                thread.Wait();
-            }
-
-            CompleteStep();
-        }
-
-        private void NextStep(Object args)
-        {
-            int startIndex = (args as Tuple<int, int>).Item1;
-            int endIndex = (args as Tuple<int, int>).Item2;
-
-            for (int i = startIndex; i < endIndex; i++)
-            {
-                Particle curr = particles[i];
-                Vector3 acc = Acceleration(i);
-                curr.NextPosition = 2.0 * curr.Position - curr.PreviousPosition + acc * step * step;
-            }
-        }
-
+        /// <summary>
+        /// Выполняет следующий шаг интергирования уравнений движения диапазона частиц.
+        /// </summary>
+        /// <param name="startIndex">Левая граница диапазона частиц.</param>
+        /// <param name="endIndex">Правая граница диапазона частиц.</param>
         private void NextStep(int startIndex, int endIndex)
         {
+            Particle curr;
+            Vector3 acc;
+
             for (int i = startIndex; i < endIndex; i++)
             {
-                Particle curr = particles[i];
-                Vector3 acc = Acceleration(i);
-                curr.NextPosition = 2.0 * curr.Position - curr.PreviousPosition + acc * step * step;
+                curr = particles[i];
+                acc = Acceleration(i);
+                curr.NextPosition = 2.0 * curr.Position - curr.PreviousPosition + acc * stepSquared;
             }
         }
 
+        /// <summary>
+        /// Вычисляет ускорение движения заданной частицы.
+        /// </summary>
+        /// <param name="i">Порядковый номер частицы.</param>
+        /// <returns>Ускорение движения заданной частицы.</returns>
         private Vector3 Acceleration(int i)
         {
             Particle curr = particles[i];
-            Vector3 acc = (0.0, 0.0, 0.0);
-            Vector3 r;
-            Vector3 re;
-            double n;
-            int j = 0;
             Particle other;
+
+            Vector3 acc = (0.0, 0.0, 0.0);
+
+            Vector3 r;
+            double n;
+
+            int j = 0;
 
             for (; j < i; j++)
             {
                 other = particles[j];
                 r = other.Position - curr.Position;
                 n = r.Norm();
-                re = r / n;
+                r /= n;
 
-                acc += re * particles[j].Mass / (n * n);
+                acc += r * (particles[j].Mass / (n * n));
             }
 
             j++;
@@ -137,22 +138,74 @@ namespace MolecularDynamics.Model
                 other = particles[j];
                 r = other.Position - curr.Position;
                 n = r.Norm();
-                re = r / n;
+                r /= n;
 
-                acc += re * particles[j].Mass / (n * n);
+                acc += r * (particles[j].Mass / (n * n));
             }
 
-            return acc * g;
+            return acc * interactionCoefficient;
         }
 
-        private void CompleteStep()
+        /// <summary>
+        /// Завершает шаг интегрирования уравнений движения диапазона частиц.
+        /// </summary>
+        /// <param name="startIndex">Левая граница диапазона частиц.</param>
+        /// <param name="endIndex">Правая граница диапазона частиц.</param>
+        private void CompleteStep(int startIndex, int endIndex)
         {
-            for (int i = 0; i < particles.Count; i++)
+            Particle curr;
+
+            for (int i = startIndex; i < endIndex; i++)
             {
-                Particle curr = particles[i];
+                curr = particles[i];
                 curr.PreviousPosition = curr.Position;
                 curr.Position = curr.NextPosition;
             }
         }
+
+        #region Threads control methods
+
+        private void RunNextStepInThreads()
+        {
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i].NextStep();
+            }
+        }
+
+        private void RunCompleteStepInThreads()
+        {
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i].CompleteStep();
+            }
+        }
+
+        private void WaitThreads()
+        {
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i].Wait();
+            }
+        }
+
+        #endregion Threads control methods
+
+        #endregion Private methods
+
+        #region Public methods
+
+        /// <summary>
+        /// Вычисляет следующий шаг движения частиц.
+        /// </summary>
+        public void NextStep()
+        {
+            RunNextStepInThreads();
+            WaitThreads();
+            RunCompleteStepInThreads();
+            WaitThreads();
+        }
+
+        #endregion Public methods
     }
 }

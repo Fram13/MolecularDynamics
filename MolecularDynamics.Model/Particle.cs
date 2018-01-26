@@ -1,7 +1,7 @@
 ﻿namespace MolecularDynamics.Model
 {
     /// <summary>
-    /// Представляет частицы, которая образуют моделируемое вещество. 
+    /// Представляет частицу, которая образуют моделируемое вещество. 
     /// </summary>
     public class Particle
     {

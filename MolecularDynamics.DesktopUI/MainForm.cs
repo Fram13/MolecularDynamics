@@ -19,44 +19,7 @@ namespace MolecularDynamics.DesktopUI
         private double scaleCoefficient = 0.1;
         private double translateCoefficient = 0.05;
 
-        private IList<Particle> particles;// = new List<Particle>()
-        //{
-        //    new Particle()
-        //    {
-        //        Position = new Vector3(0.0, 0.0, 0.0),
-        //        InitialVelocity = (1.0, 0.0, 0.0),
-        //        Radius = 0.2,
-        //        Mass = 1
-        //    },
-        //    new Particle()
-        //    {
-        //        Position = new Vector3(0.5, 0.0, 0.0),
-        //        InitialVelocity = (1.1, -0.2, 0.0),
-        //        Radius = 0.2,
-        //        Mass = 1
-        //    },
-        //    new Particle()
-        //    {
-        //        Position = new Vector3(0.0, 0.5, 0.0),
-        //        InitialVelocity = (1.3, 0.2, 0.0),
-        //        Radius = 0.2,
-        //        Mass = 1
-        //    },
-        //    new Particle()
-        //    {
-        //        Position = new Vector3(0.7, 0.5, 0.0),
-        //        InitialVelocity = (-1.3, 0.2, 0.0),
-        //        Radius = 0.2,
-        //        Mass = 1
-        //    },
-        //    new Particle()
-        //    {
-        //        Position = new Vector3(-0.5, 0.5, 0.0),
-        //        InitialVelocity = (1.3, -0.2, 0.0),
-        //        Radius = 0.2,
-        //        Mass = 1
-        //    }
-        //};
+        private IList<Particle> particles;
 
         public MainForm()
         {
@@ -71,9 +34,8 @@ namespace MolecularDynamics.DesktopUI
             renderer = new Renderer(Color.White);
 
             generator = new ParticleGenerator();
-            particles = generator.Generate3DGrid(10, 10, 10);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1, 2);
-            intergrator.InitialStep();
+            particles = generator.Generate2DGrid(10, 10);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, -0.1, 1);
 
             MainForm_Resize(sender, e);
         }

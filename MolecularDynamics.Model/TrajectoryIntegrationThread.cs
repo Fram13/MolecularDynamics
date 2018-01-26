@@ -1,56 +1,80 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace MolecularDynamics.Model
 {
     public partial class ParticleTrajectoryIntegrator
     {
+        /// <summary>
+        /// Представляет поток интегрирования уравнений движения диапазона частиц.
+        /// </summary>
         private class TrajectoryIntegrationThread
         {
-            private Thread thread;
-            private bool needCalculate;
+            #region Fields
 
+            private bool needNextStep;
+            private bool needCompleteStep;
+
+            #endregion Fields
+
+            #region Constructors
+
+            /// <summary>
+            /// Создает новый экземпляр <see cref="TrajectoryIntegrationThread"/>.
+            /// </summary>
+            /// <param name="integrator">Экземпляр <see cref="ParticleTrajectoryIntegrator"/>, в контексте которого создается поток.</param>
+            /// <param name="startIndex">Левая граница диапазона частиц.</param>
+            /// <param name="endIndex">Правая граница диапазона частиц.</param>
             public TrajectoryIntegrationThread(ParticleTrajectoryIntegrator integrator, int startIndex, int endIndex)
             {
-                //thread = new Thread(new ParameterizedThreadStart(args =>
-                //{
-                //    while (true)
-                //    {
-                //        if (needCalculate)
-                //        {
-                //            integrator.NextStep(args);
-                //            needCalculate = false;
-                //        }
-                //    }
-                //}));
-
-                //thread.Name = "Start index: " + startIndex;
-                //thread.IsBackground = true;
-                //thread.Start(Tuple.Create(startIndex, endIndex));
-
                 Task.Run(() =>
                 {
                     while (true)
                     {
-                        if (needCalculate)
+                        if (needNextStep)
                         {
                             integrator.NextStep(startIndex, endIndex);
-                            needCalculate = false;
+                            needNextStep = false;
+                        }
+
+                        if (needCompleteStep)
+                        {
+                            integrator.CompleteStep(startIndex, endIndex);
+                            needCompleteStep = false;
                         }
                     }
                 });
             }
 
+            #endregion Constructors
+
+            #region Methods
+
+            /// <summary>
+            /// Выполняет следующий шаг интергирования уравнений движения диапазона частиц.
+            /// </summary>
             public void NextStep()
             {
-                needCalculate = true;
+                needNextStep = true;
             }
 
+            /// <summary>
+            /// Завершает шаг интегрирования уравнений движения диапазона частиц.
+            /// </summary>
+            public void CompleteStep()
+            {
+                needCompleteStep = true;
+            }
+
+            /// <summary>
+            /// Ожидает завершения выполнения вычислений данного потока.
+            /// </summary>
             public void Wait()
             {
-                while (needCalculate);
+                while (needNextStep);
+                while (needCompleteStep);
             }
+
+            #endregion Methods
         }
     }
 }
