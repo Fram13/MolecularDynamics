@@ -9,14 +9,49 @@ namespace MolecularDynamics.DesktopUI
 {
     public class Renderer
     {
+        private List<Vector3d> sphereVertices;
         private Matrix4d view;
+        private int faces = 20;
 
-        public Renderer(Color clearColor)
+        public Renderer(Color clearColor, double identityRadius)
         {
+            sphereVertices = new List<Vector3d>();
+            InitializeSphereVertices(identityRadius);
+
             GL.ClearColor(clearColor);
             GL.Enable(EnableCap.DepthTest);
 
             view = Matrix4d.Identity;
+        }
+
+        private void InitializeSphereVertices(double radius)
+        {
+            double max = 2.0 * Math.PI;
+            double step = max / faces;
+
+            for (double theta = 0.0; theta < max; theta += step)
+            {
+                double sinTheta = Math.Sin(theta);
+                double cosTheta = Math.Cos(theta);
+
+                for (double phi = 0.0; phi < max; phi += step)
+                {
+                    double sinPhi = Math.Sin(phi);
+                    double cosPhi = Math.Cos(phi);
+
+                    double x = radius * sinTheta * cosPhi;
+                    double y = radius * sinTheta * sinPhi;
+                    double z = radius * cosTheta;
+
+                    sphereVertices.Add(new Vector3d(x, y, z));
+
+                    x = radius * Math.Sin(theta + step) * cosPhi;
+                    y = radius * Math.Sin(theta + step) * sinPhi;
+                    z = radius * Math.Cos(theta + step);
+
+                    sphereVertices.Add(new Vector3d(x, y, z));
+                }
+            }
         }
 
         public void Translate(double dx, double dy)
@@ -74,32 +109,12 @@ namespace MolecularDynamics.DesktopUI
             double max = 2.0 * Math.PI;
             double step = max / 5;
 
-            GL.Begin(BeginMode.QuadStrip);
+            GL.Begin(PrimitiveType.QuadStrip);
 
-            for (double theta = 0.0; theta < max; theta += step)
+            for (int i = 0; i < sphereVertices.Count; i++)
             {
-                double sinTheta = Math.Sin(theta);
-                double cosTheta = Math.Cos(theta);
-
-                for (double phi = 0.0; phi < max; phi += step)
-                {
-                    double sinPhi = Math.Sin(phi);
-                    double cosPhi = Math.Cos(phi);
-
-                    double x = particle.Radius * sinTheta * cosPhi;
-                    double y = particle.Radius * sinTheta * sinPhi;
-                    double z = particle.Radius * cosTheta;
-
-                    GL.Normal3(x, y, z);
-                    GL.Vertex3(x + particle.Position.X, y + particle.Position.Y, z + particle.Position.Z);
-
-                    x = particle.Radius * Math.Sin(theta + step) * cosPhi;
-                    y = particle.Radius * Math.Sin(theta + step) * sinPhi;
-                    z = particle.Radius * Math.Cos(theta + step);
-
-                    GL.Normal3(x, y, z);
-                    GL.Vertex3(x + particle.Position.X, y + particle.Position.Y, z + particle.Position.Z);
-                }
+                GL.Normal3(sphereVertices[i]);
+                GL.Vertex3(sphereVertices[i].X + particle.Position.X, sphereVertices[i].Y + particle.Position.Y, sphereVertices[i].Z + particle.Position.Z);
             }
 
             GL.End();

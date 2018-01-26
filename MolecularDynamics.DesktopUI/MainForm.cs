@@ -31,11 +31,12 @@ namespace MolecularDynamics.DesktopUI
         private void MainForm_Load(Object sender, EventArgs e)
         {
             glControlLoaded = true;
-            renderer = new Renderer(Color.White);
 
             generator = new ParticleGenerator();
             particles = generator.Generate2DGrid(10, 10);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, -0.1, 1);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 0.1, 1);
+
+            renderer = new Renderer(Color.White, particles[0].Radius);
 
             MainForm_Resize(sender, e);
         }
@@ -89,7 +90,7 @@ namespace MolecularDynamics.DesktopUI
             }
         }
 
-        private void glControl_KeyDown(Object sender, KeyEventArgs e)
+        private void GLControl_KeyDown(Object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
