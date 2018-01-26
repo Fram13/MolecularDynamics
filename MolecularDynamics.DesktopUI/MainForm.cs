@@ -34,7 +34,7 @@ namespace MolecularDynamics.DesktopUI
 
             generator = new ParticleGenerator();
             particles = generator.Generate2DGrid(10, 10);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 0.1, 1);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 0.1, 2);
 
             renderer = new Renderer(Color.White, particles[0].Radius);
 

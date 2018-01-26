@@ -106,10 +106,7 @@ namespace MolecularDynamics.DesktopUI
 
         private void PaintParticle(Particle particle)
         {
-            double max = 2.0 * Math.PI;
-            double step = max / 5;
-
-            GL.Begin(PrimitiveType.QuadStrip);
+            GL.Begin(BeginMode.QuadStrip);
 
             for (int i = 0; i < sphereVertices.Count; i++)
             {
