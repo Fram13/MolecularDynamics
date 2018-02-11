@@ -8,53 +8,17 @@ namespace MolecularDynamics.DesktopUI
 {
     public partial class MainForm : Form
     {
-        private bool glControlLoaded;
         private ParticleTrajectoryIntegrator intergrator;
+        private bool glControlLoaded;
         private Renderer renderer;
 
-        private readonly double toRadians = Math.PI / 180.0;        
+        private readonly double toRadians = Math.PI / 180.0;
         private int prevMouseX, prevMouseY;
         private double rotateCoefficient = 0.15;
         private double scaleCoefficient = 0.1;
         private double translateCoefficient = 0.05;
 
-        private List<Particle> particles = new List<Particle>()
-        {
-            new Particle()
-            {
-                Position = new Vector3(0.0, 0.0, 0.0),
-                InitialVelocity = (1.0, 0.0, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.5, 0.0, 0.0),
-                InitialVelocity = (1.1, -0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.0, 0.5, 0.0),
-                InitialVelocity = (1.3, 0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },
-            new Particle()
-            {
-                Position = new Vector3(0.7, 0.5, 0.0),
-                InitialVelocity = (-1.3, 0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            },new Particle()
-            {
-                Position = new Vector3(-0.5, 0.5, 0.0),
-                InitialVelocity = (1.3, -0.2, 0.0),
-                Radius = 0.2,
-                Mass = 1
-            }
-        };
+        private IList<Particle> particles;
 
         public MainForm()
         {
@@ -66,9 +30,10 @@ namespace MolecularDynamics.DesktopUI
         private void MainForm_Load(Object sender, EventArgs e)
         {
             glControlLoaded = true;
-            renderer = new Renderer(Color.White);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
-            intergrator.InitialStep();
+
+            particles = ParticleGenerator.Generate2DGrid(10, 10, 1, InteractionFunctions.GravitationalInteraction);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, Environment.ProcessorCount);
+            renderer = new Renderer(Color.White, 0.005, 10);
 
             MainForm_Resize(sender, e);
         }
@@ -115,42 +80,75 @@ namespace MolecularDynamics.DesktopUI
                 renderer.RotateX((e.Y - prevMouseY) * rotateCoefficient * toRadians);
                 prevMouseY = e.Y;
 
-                glControl.Invalidate();
+                if (!timer.Enabled)
+                {
+                    glControl.Invalidate();
+                }
             }
         }
 
-        private void glControl_KeyDown(Object sender, KeyEventArgs e)
+        private void GLControl_KeyDown(Object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
                 case Keys.E:
                     renderer.Scale(1.0 + scaleCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.Q:
                     renderer.Scale(1.0 - scaleCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.W:
                     renderer.Translate(0.0, -translateCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.S:
                     renderer.Translate(0.0, translateCoefficient);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.A:
                     renderer.Translate(translateCoefficient, 0.0);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.D:
                     renderer.Translate(-translateCoefficient, 0.0);
-                    glControl.Invalidate();
+
+                    if (!timer.Enabled)
+                    {
+                        glControl.Invalidate();
+                    }
+
                     break;
 
                 case Keys.Space:

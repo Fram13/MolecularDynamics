@@ -44,7 +44,7 @@
             this.glControl.TabIndex = 0;
             this.glControl.VSync = false;
             this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.GlControl_Paint);
-            this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyDown);
+            this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GLControl_KeyDown);
             this.glControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseDown);
             this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseMove);
             // 

@@ -1,7 +1,9 @@
-﻿namespace MolecularDynamics.Model
+﻿using System;
+
+namespace MolecularDynamics.Model
 {
     /// <summary>
-    /// Представляет частицы, которая образуют моделируемое вещество. 
+    /// Представляет частицу, которая образуют моделируемое вещество. 
     /// </summary>
     public class Particle
     {
@@ -11,28 +13,18 @@
         public Vector3 Position { get; set; }
 
         /// <summary>
-        /// Предыдущее положение частицы в пространстве.
+        /// Текущвя скорость частицы.
         /// </summary>
-        internal Vector3 PreviousPosition { get; set; }
-
-        /// <summary>
-        /// Следующее положение частицы в пространстве.
-        /// </summary>
-        internal Vector3 NextPosition { get; set; }
-
-        /// <summary>
-        /// Начальная скорость частицы.
-        /// </summary>
-        public Vector3 InitialVelocity { get; set; }
-
-        /// <summary>
-        /// Радиус частицы.
-        /// </summary>
-        public double Radius { get; set; }
+        public Vector3 Velocity { get; set; }
 
         /// <summary>
         /// Масса частицы.
         /// </summary>
         public double Mass { get; set; }
+
+        /// <summary>
+        /// Функция, вычисляющая ускорение взаимодействия пары частиц.
+        /// </summary>
+        public Func<Particle, Particle, Vector3> InteractionFunction { get; set; }
     }
 }
