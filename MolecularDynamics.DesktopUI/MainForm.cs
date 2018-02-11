@@ -32,7 +32,7 @@ namespace MolecularDynamics.DesktopUI
             glControlLoaded = true;
 
             particles = ParticleGenerator.Generate2DGrid(10, 10, 1, InteractionFunctions.GravitationalInteraction);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, Environment.ProcessorCount);
             renderer = new Renderer(Color.White, 0.005, 10);
 
             MainForm_Resize(sender, e);
