@@ -159,12 +159,38 @@ namespace MolecularDynamics.Model
         }
 
         /// <summary>
+        /// Выполняет сложение векторов и записывает результат в текущий вектор.
+        /// </summary>
+        /// <param name="other">Правый вектор.</param>
+        public Vector3 AddToCurrent(Vector3 other)
+        {
+            this.x += other.x;
+            this.y += other.y;
+            this.z += other.z;
+
+            return this;
+        }
+
+        /// <summary>
         /// Выполняет вычитание векторов.
         /// </summary>
         /// <param name="other">Правый вектор.</param>
         public Vector3 Subtract(Vector3 other)
         {
             return new Vector3(this.x - other.x, this.y - other.y, this.z - other.z);
+        }
+
+        /// <summary>
+        /// Выполняет вычитание векторов и записывает результат в текущий вектор.
+        /// </summary>
+        /// <param name="other">Правый вектор.</param>
+        public Vector3 SubtractToCurrent(Vector3 other)
+        {
+            this.x -= other.x;
+            this.y -= other.y;
+            this.z -= other.z;
+
+            return this;
         }
 
         /// <summary>
@@ -177,12 +203,38 @@ namespace MolecularDynamics.Model
         }
 
         /// <summary>
+        /// Выполняет умножение вектора на скаляр и записывает результат в текущий вектор.
+        /// </summary>
+        /// <param name="other">Правый вектор.</param>
+        public Vector3 MultiplyToCurrent(double other)
+        {
+            x *= other;
+            y *= other;
+            z *= other;
+
+            return this;
+        }
+
+        /// <summary>
         /// Выполняет деление вектора на скаляр.
         /// </summary>
         /// <param name="other">Скаляр.</param>
         public Vector3 Divide(double other)
         {
             return new Vector3(x / other, y / other, z / other);
+        }
+
+        /// <summary>
+        /// Выполняет деление вектора на скаляр и записывает результат в текущий вектор.
+        /// </summary>
+        /// <param name="other">Правый вектор.</param>
+        public Vector3 DivideToCurrent(double other)
+        {
+            x /= other;
+            y /= other;
+            z /= other;
+
+            return this;
         }
 
         #endregion Methods

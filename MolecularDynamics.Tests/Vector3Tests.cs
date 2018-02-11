@@ -95,7 +95,7 @@ namespace MolecularDynamics.Tests
         }
 
         [TestMethod]
-        public void Sum()
+        public void Add()
         {
             //arrange
             Vector3 v1 = (1.0, 2.0, 3.0);
@@ -156,6 +156,70 @@ namespace MolecularDynamics.Tests
             Assert.AreEqual(0.5, v3[0]);
             Assert.AreEqual(1.0, v3[1]);
             Assert.AreEqual(1.5, v3[2]);
+        }
+
+        [TestMethod]
+        public void AddToCurrent()
+        {
+            //arrange
+            Vector3 v1 = (1.0, 2.0, 3.0);
+            Vector3 v2 = (0.0, -2.0, 4.0);
+
+            //act
+            v1.AddToCurrent(v2);
+
+            //assert
+            Assert.AreEqual(1.0, v1[0]);
+            Assert.AreEqual(0.0, v1[1]);
+            Assert.AreEqual(7.0, v1[2]);
+        }
+
+        [TestMethod]
+        public void SubtractToCurrent()
+        {
+            //arrange
+            Vector3 v1 = (1.0, 2.0, 3.0);
+            Vector3 v2 = (0.0, -2.0, 4.0);
+
+            //act
+            v1.SubtractToCurrent(v2);
+
+            //assert
+            Assert.AreEqual(1.0, v1[0]);
+            Assert.AreEqual(4.0, v1[1]);
+            Assert.AreEqual(-1.0, v1[2]);
+        }
+
+        [TestMethod]
+        public void MultiplyToCurrent()
+        {
+            //arrange
+            Vector3 v1 = (1.0, 2.0, 3.0);
+            double s = 3.0;
+
+            //act
+            v1.MultiplyToCurrent(s);
+
+            //assert
+            Assert.AreEqual(3.0, v1[0]);
+            Assert.AreEqual(6.0, v1[1]);
+            Assert.AreEqual(9.0, v1[2]);
+        }
+
+        [TestMethod]
+        public void DivideToCurrent()
+        {
+            //arrange
+            Vector3 v1 = (1.0, 2.0, 3.0);
+            double s = 2.0;
+
+            //act
+            v1.DivideToCurrent(s);
+
+            //assert
+            Assert.AreEqual(0.5, v1[0]);
+            Assert.AreEqual(1.0, v1[1]);
+            Assert.AreEqual(1.5, v1[2]);
         }
 
         [TestMethod]

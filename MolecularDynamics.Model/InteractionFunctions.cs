@@ -15,8 +15,8 @@
         {
             Vector3 r = other.Position - current.Position;
             double n = r.Norm();
-            r /= n;
-            return r * (other.Mass / (n * n));
+            r.DivideToCurrent(n);
+            return r.MultiplyToCurrent(other.Mass / (n * n));
         }
     }
 }

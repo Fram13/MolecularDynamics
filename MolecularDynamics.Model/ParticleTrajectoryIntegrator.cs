@@ -134,7 +134,7 @@ namespace MolecularDynamics.Model
 
             while (i < particleIndex)
             {
-                currentAccelerations[particleIndex] += current.InteractionFunction(current, particles[i]);
+                currentAccelerations[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
                 i += threadCount;
             }
 
@@ -145,7 +145,7 @@ namespace MolecularDynamics.Model
 
             while (i < particles.Count)
             {
-                currentAccelerations[particleIndex] += current.InteractionFunction(current, particles[i]);
+                currentAccelerations[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
                 i += threadCount;
             }
         }
@@ -163,7 +163,9 @@ namespace MolecularDynamics.Model
             {
                 for (int i = start; i < end; i++)
                 {
-                    currentAccelerations[i] = new Vector3(0.0, 0.0, 0.0);
+                    currentAccelerations[i].X = 0.0;
+                    currentAccelerations[i].Y = 0.0;
+                    currentAccelerations[i].Z = 0.0;
                 }
             });
 
@@ -173,8 +175,11 @@ namespace MolecularDynamics.Model
             {
                 for (int i = start; i < end; i++)
                 {
-                    particles[i].Position += particles[i].Velocity * step + currentAccelerations[i] * stepSquaredHalf;
                     previousAccelerations[i] = currentAccelerations[i];
+
+                    currentAccelerations[i].MultiplyToCurrent(stepSquaredHalf);
+                    Vector3 v = particles[i].Velocity * step;
+                    particles[i].Position.AddToCurrent(v).AddToCurrent(currentAccelerations[i]);
                 }
             });
 
@@ -184,7 +189,9 @@ namespace MolecularDynamics.Model
             {
                 for (int i = start; i < end; i++)
                 {
-                    particles[i].Velocity += (previousAccelerations[i] + currentAccelerations[i]) * halfStep;
+                    previousAccelerations[i].MultiplyToCurrent(halfStep);
+                    currentAccelerations[i].MultiplyToCurrent(halfStep);
+                    particles[i].Velocity.AddToCurrent(previousAccelerations[i]).AddToCurrent(currentAccelerations[i]);
                 }
             });
         }
