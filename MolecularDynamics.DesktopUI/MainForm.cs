@@ -8,12 +8,11 @@ namespace MolecularDynamics.DesktopUI
 {
     public partial class MainForm : Form
     {
-        private ParticleGenerator generator;
         private ParticleTrajectoryIntegrator intergrator;
         private bool glControlLoaded;
         private Renderer renderer;
 
-        private readonly double toRadians = Math.PI / 180.0;        
+        private readonly double toRadians = Math.PI / 180.0;
         private int prevMouseX, prevMouseY;
         private double rotateCoefficient = 0.15;
         private double scaleCoefficient = 0.1;
@@ -32,11 +31,9 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
 
-            generator = new ParticleGenerator();
-            particles = generator.Generate2DGrid(10, 10);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 0.1, 2);
-
-            renderer = new Renderer(Color.White, particles[0].Radius);
+            particles = ParticleGenerator.Generate2DGrid(10, 10, 1, InteractionFunctions.GravitationalInteraction);
+            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, 1);
+            renderer = new Renderer(Color.White, 0.005, 10);
 
             MainForm_Resize(sender, e);
         }

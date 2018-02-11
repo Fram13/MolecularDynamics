@@ -6,26 +6,21 @@ namespace MolecularDynamics.Model
     /// <summary>
     /// Представляет генератор частиц.
     /// </summary>
-    public class ParticleGenerator
+    public static class ParticleGenerator
     {
-        /// <summary>
-        /// Создает новый экземпляр <see cref="ParticleGenerator"/>.
-        /// </summary>
-        public ParticleGenerator() { }
-
         /// <summary>
         /// Генерирует частицы, расположенные в пересечениях строк и столбцов плоской сетки.
         /// </summary>
         /// <param name="rows">Количество строк сетки.</param>
         /// <param name="columns">Количетсво столбцов сетки.</param>
-        /// <returns></returns>
-        public IList<Particle> Generate2DGrid(int rows, int columns)
+        /// <param name="mass">Масса частицы.</param>
+        /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
+        public static IList<Particle> Generate2DGrid(int rows, int columns, double mass, Func<Particle, Particle, Vector3> interactionFunction)
         {
-            List<Particle> particles = new List<Particle>(rows * columns);
+            IList<Particle> particles = new List<Particle>(rows * columns);
 
-            double XStep = 1.0 / (columns - 1);
-            double YStep = 1.0 / (rows - 1);
-            double radius = Math.Min(XStep, YStep) * 0.4;
+            double XStep = columns != 0 ? 1.0 / (columns - 1) : 0.0;
+            double YStep = rows != 0 ? 1.0 / (rows - 1) : 0.0;
 
             double x = 0.0;
 
@@ -38,8 +33,8 @@ namespace MolecularDynamics.Model
                     particles.Add(new Particle()
                     {
                         Position = (x, y, 0.0),
-                        Mass = 1,
-                        Radius = radius
+                        Mass = mass,
+                        InteractionFunction = interactionFunction
                     });
 
                     y += YStep;
@@ -57,15 +52,15 @@ namespace MolecularDynamics.Model
         /// <param name="layers">Количество слоев сетки.</param>
         /// <param name="rows">Количество строк сетки.</param>
         /// <param name="columns">Количетсво столбцов сетки.</param>
-        /// <returns></returns>
-        public IList<Particle> Generate3DGrid(int layers, int rows, int columns)
+        /// <param name="mass">Масса частицы.</param>
+        /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
+        public static IList<Particle> Generate3DGrid(int layers, int rows, int columns, double mass, Func<Particle, Particle, Vector3> interactionFunction)
         {
-            List<Particle> particles = new List<Particle>(layers * rows * columns);
+            IList<Particle> particles = new List<Particle>(layers * rows * columns);
 
-            double XStep = 1.0 / (columns - 1);
-            double YStep = 1.0 / (rows - 1);
-            double ZStep = 1.0 / (layers - 1);
-            double radius = Math.Min(ZStep, Math.Min(XStep, YStep)) * 0.4;
+            double XStep = columns != 0 ? 1.0 / (columns - 1) : 0.0;
+            double YStep = rows != 0 ? 1.0 / (rows - 1) : 0.0;
+            double ZStep = layers != 0 ? 1.0 / (layers - 1) : 0.0;
 
             double z = 0.0;
 
@@ -82,8 +77,8 @@ namespace MolecularDynamics.Model
                         particles.Add(new Particle()
                         {
                             Position = (x, y, z),
-                            Mass = 1,
-                            Radius = radius
+                            Mass = mass,
+                            InteractionFunction = interactionFunction
                         });
 
                         y += YStep;

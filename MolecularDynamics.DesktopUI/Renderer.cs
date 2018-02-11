@@ -11,12 +11,13 @@ namespace MolecularDynamics.DesktopUI
     {
         private List<Vector3d> sphereVertices;
         private Matrix4d view;
-        private int faces = 20;
+        private int faces;
 
-        public Renderer(Color clearColor, double identityRadius)
+        public Renderer(Color clearColor, double radius, int faces)
         {
+            this.faces = faces;
             sphereVertices = new List<Vector3d>();
-            InitializeSphereVertices(identityRadius);
+            InitializeSphereVertices(radius);
 
             GL.ClearColor(clearColor);
             GL.Enable(EnableCap.DepthTest);
