@@ -100,7 +100,8 @@ namespace MolecularDynamics.Model
                     for (int k = 0; k < threadCount; k++)
                     {
                         int particleIndex = i * threadCount + k;
-                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, offset));
+                        int currenfOffset = offset;
+                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, currenfOffset));
                     }
 
                     Task.WaitAll(computingTasks);
@@ -114,7 +115,8 @@ namespace MolecularDynamics.Model
                     for (int k = 0; k < rest; k++)
                     {
                         int particleIndex = count * threadCount + k;
-                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, offset));
+                        int currenfOffset = offset;
+                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, currenfOffset));
                     }
 
                     Task.WaitAll(computingTasks);
@@ -179,7 +181,7 @@ namespace MolecularDynamics.Model
 
                     currentAccelerations[i].MultiplyToCurrent(stepSquaredHalf);
                     Vector3 v = particles[i].Velocity * step;
-                    particles[i].Position.AddToCurrent(v).AddToCurrent(currentAccelerations[i]);
+                    particles[i].Position = particles[i].Position.AddToCurrent(v).AddToCurrent(currentAccelerations[i]);
                 }
             });
 
@@ -191,7 +193,7 @@ namespace MolecularDynamics.Model
                 {
                     previousAccelerations[i].MultiplyToCurrent(halfStep);
                     currentAccelerations[i].MultiplyToCurrent(halfStep);
-                    particles[i].Velocity.AddToCurrent(previousAccelerations[i]).AddToCurrent(currentAccelerations[i]);
+                    particles[i].Velocity = particles[i].Velocity.AddToCurrent(previousAccelerations[i]).AddToCurrent(currentAccelerations[i]);
                 }
             });
         }
