@@ -12,8 +12,7 @@ namespace MolecularDynamics.Model
         #region Fields
 
         private IList<Particle> particles;
-        private Vector3[] currentAccelerations;
-        private Vector3[] previousAccelerations;
+        private Vector3[] forces;
         private Task[] computingTasks;
         private ValueTuple<int, int>[] indexBlocks;
         private double step;
@@ -39,8 +38,7 @@ namespace MolecularDynamics.Model
 
             halfStep = step * 0.5;
             stepSquaredHalf = step * step * 0.5;
-            currentAccelerations = new Vector3[particles.Count];
-            previousAccelerations = new Vector3[particles.Count];
+            forces = new Vector3[particles.Count];
             computingTasks = new Task[threadCount];
             indexBlocks = new ValueTuple<int, int>[threadCount];
             InitializeIndexBlocks();
@@ -136,7 +134,7 @@ namespace MolecularDynamics.Model
 
             while (i < particleIndex)
             {
-                currentAccelerations[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
+                forces[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
                 i += threadCount;
             }
 
@@ -147,7 +145,7 @@ namespace MolecularDynamics.Model
 
             while (i < particles.Count)
             {
-                currentAccelerations[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
+                forces[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
                 i += threadCount;
             }
         }
@@ -165,9 +163,9 @@ namespace MolecularDynamics.Model
             {
                 for (int i = start; i < end; i++)
                 {
-                    currentAccelerations[i].X = 0.0;
-                    currentAccelerations[i].Y = 0.0;
-                    currentAccelerations[i].Z = 0.0;
+                    forces[i].X = 0.0;
+                    forces[i].Y = 0.0;
+                    forces[i].Z = 0.0;
                 }
             });
 
@@ -177,23 +175,13 @@ namespace MolecularDynamics.Model
             {
                 for (int i = start; i < end; i++)
                 {
-                    previousAccelerations[i] = currentAccelerations[i];
+                    Vector3 velocity = particles[i].Velocity;
+                    velocity.AddToCurrent(forces[i].MultiplyToCurrent(step / particles[i].Mass));
+                    particles[i].Velocity = velocity;
 
-                    currentAccelerations[i].MultiplyToCurrent(stepSquaredHalf);
-                    Vector3 v = particles[i].Velocity * step;
-                    particles[i].Position = particles[i].Position.AddToCurrent(v).AddToCurrent(currentAccelerations[i]);
-                }
-            });
-
-            ComputeAccelerations();
-
-            ForEachIndexBlock((start, end) =>
-            {
-                for (int i = start; i < end; i++)
-                {
-                    previousAccelerations[i].MultiplyToCurrent(halfStep);
-                    currentAccelerations[i].MultiplyToCurrent(halfStep);
-                    particles[i].Velocity = particles[i].Velocity.AddToCurrent(previousAccelerations[i]).AddToCurrent(currentAccelerations[i]);
+                    Vector3 position = particles[i].Position;
+                    position.AddToCurrent(velocity * step);
+                    particles[i].Position = position;
                 }
             });
         }

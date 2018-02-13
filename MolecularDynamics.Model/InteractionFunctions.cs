@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="current">Текущая частица.</param>
         /// <param name="other">Частица, которая оказывает влияние на текущую частицу.</param>
-        /// <returns>Ускорение гравитационного влияния, создаваемого другой частицей.</returns>
+        /// <returns>Сила гравитационного взаимодействия, создаваемого другой частицей.</returns>
         public static Vector3 GravitationalInteraction(Particle current, Particle other)
         {
             Vector3 r = other.Position - current.Position;

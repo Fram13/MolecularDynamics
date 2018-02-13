@@ -23,7 +23,7 @@ namespace MolecularDynamics.Model
         public double Mass { get; set; }
 
         /// <summary>
-        /// Функция, вычисляющая ускорение взаимодействия пары частиц.
+        /// Функция, вычисляющая силу взаимодействия пары частиц.
         /// </summary>
         public Func<Particle, Particle, Vector3> InteractionFunction { get; set; }
     }
