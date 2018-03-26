@@ -1,96 +1,97 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MolecularDynamics.Model
 {
     /// <summary>
     /// Представляет генератор частиц.
     /// </summary>
-    public static class ParticleGenerator
+    public static class ParticleGridGenerator
     {
-        /// <summary>
-        /// Генерирует частицы, расположенные в пересечениях строк и столбцов плоской сетки.
-        /// </summary>
-        /// <param name="rows">Количество строк сетки.</param>
-        /// <param name="columns">Количетсво столбцов сетки.</param>
-        /// <param name="mass">Масса частицы.</param>
-        /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
-        public static IList<Particle> Generate2DGrid(int rows, int columns, double mass, Func<Particle, Particle, Vector3> interactionFunction)
-        {
-            IList<Particle> particles = new List<Particle>(rows * columns);
-
-            double XStep = columns != 0 ? 1.0 / (columns - 1) : 0.0;
-            double YStep = rows != 0 ? 1.0 / (rows - 1) : 0.0;
-
-            double x = 0.0;
-
-            for (int i = 0; i < rows; i++)
-            {
-                double y = 0.0;
-
-                for (int j = 0; j < columns; j++)
-                {
-                    particles.Add(new Particle()
-                    {
-                        Position = (x, y, 0.0),
-                        Mass = mass,
-                        InteractionFunction = interactionFunction
-                    });
-
-                    y += YStep;
-                }
-
-                x += XStep;
-            }
-
-            return particles;
-        }
-
         /// <summary>
         /// Генерирует частицы, расположенные в пересечениях строк и столбцов объемной сетки.
         /// </summary>
-        /// <param name="layers">Количество слоев сетки.</param>
-        /// <param name="rows">Количество строк сетки.</param>
-        /// <param name="columns">Количетсво столбцов сетки.</param>
+        /// <param name="spaceSize"></param>
+        /// <param name="cellCount"></param>
         /// <param name="mass">Масса частицы.</param>
         /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
-        public static IList<Particle> Generate3DGrid(int layers, int rows, int columns, double mass, Func<Particle, Particle, Vector3> interactionFunction)
+        public static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double mass, Func<Particle, Particle, Vector3> interactionFunction)
         {
-            IList<Particle> particles = new List<Particle>(layers * rows * columns);
-
-            double XStep = columns != 0 ? 1.0 / (columns - 1) : 0.0;
-            double YStep = rows != 0 ? 1.0 / (rows - 1) : 0.0;
-            double ZStep = layers != 0 ? 1.0 / (layers - 1) : 0.0;
-
-            double z = 0.0;
-
-            for (int k = 0; k < layers; k++)
+            return GenerateGrid(spaceSize, cellCount, (grid, cell, origin) =>
             {
-                double x = 0.0;
-
-                for (int i = 0; i < rows; i++)
+                cell.Particles.Add(new Particle()
                 {
-                    double y = 0.0;
+                    InteractionFunction = interactionFunction,
+                    Mass = mass,
+                    Position = origin + (grid.CellWidth / 2, grid.CellHeight / 2, grid.CellDepth / 2)
+                });
 
-                    for (int j = 0; j < columns; j++)
+                double x = grid.CellWidth * 0.25;
+
+                for (int i = 0; i < 2; i++)
+                {
+                    double y = grid.CellHeight * 0.25;
+
+                    for (int j = 0; j < 2; j++)
                     {
-                        particles.Add(new Particle()
-                        {
-                            Position = (x, y, z),
-                            Mass = mass,
-                            InteractionFunction = interactionFunction
-                        });
+                        double z = grid.CellDepth * 0.25;
 
-                        y += YStep;
+                        for (int k = 0; k < 2; k++)
+                        {
+                            cell.Particles.Add(new Particle()
+                            {
+                                InteractionFunction = interactionFunction,
+                                Mass = mass,
+                                Position = origin + (x, y, z)
+                            });
+
+                            cell.Forces.Add(new Vector3(0, 0, 0));
+
+                            z += grid.CellDepth * 0.5;
+                        }
+
+                        y += grid.CellHeight * 0.5;
                     }
 
-                    x += XStep;
+                    x += grid.CellWidth * 0.5;
                 }
 
-                z += ZStep;
-            }
+                cell.Forces.Add(new Vector3(0, 0, 0));
+            });
+        }
 
-            return particles;
+        private static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, Action<ParticleGrid, ParticleGridCell, Vector3> generationAction)
+        {
+            ParticleGrid grid = new ParticleGrid(spaceSize, cellCount);
+
+            ForEachCell(grid, generationAction);
+
+            return grid;
+        }
+
+        private static void ForEachCell(ParticleGrid grid, Action<ParticleGrid, ParticleGridCell, Vector3> generationAction)
+        {
+            double x = 0.0;
+
+            for (int i = 0; i < grid.Rows; i++)
+            {
+                double y = 0.0;
+
+                for (int j = 0; j < grid.Columns; j++)
+                {
+                    double z = 0.0;
+
+                    for (int k = 0; k < grid.Layers; k++)
+                    {
+                        generationAction(grid, grid[i, j, k], (x, y, z));
+
+                        z += grid.CellDepth;
+                    }
+
+                    y += grid.CellHeight;
+                }
+
+                x += grid.CellWidth;
+            }
         }
     }
 }

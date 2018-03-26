@@ -8,17 +8,17 @@ namespace MolecularDynamics.DesktopUI
 {
     public partial class MainForm : Form
     {
-        private ParticleTrajectoryIntegrator intergrator;
-        private bool glControlLoaded;
+        private ParticleGrid grid;
+        private ParticleTrajectoryIntegrator integrator;
         private Renderer renderer;
+        private List<Particle> particles;
 
+        private bool glControlLoaded;
         private readonly double toRadians = Math.PI / 180.0;
         private int prevMouseX, prevMouseY;
         private double rotateCoefficient = 0.15;
         private double scaleCoefficient = 0.1;
         private double translateCoefficient = 0.05;
-
-        private IList<Particle> particles;
 
         public MainForm()
         {
@@ -31,9 +31,22 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
 
-            particles = ParticleGenerator.Generate2DGrid(10, 10, 1, InteractionFunctions.GravitationalInteraction);
-            intergrator = new ParticleTrajectoryIntegrator(particles, 0.00125, Environment.ProcessorCount);
+            grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (3, 3, 3), 1, InteractionFunctions.GravitationalInteraction);
+            integrator = new ParticleTrajectoryIntegrator(grid, 0.00125);
             renderer = new Renderer(Color.White, 0.005, 10);
+
+            particles = new List<Particle>();
+
+            for (int i = 0; i < grid.Rows; i++)
+            {
+                for (int j = 0; j < grid.Columns; j++)
+                {
+                    for (int k = 0; k < grid.Layers; k++)
+                    {
+                        particles.AddRange(grid[i, j, k].Particles);
+                    }
+                }
+            }
 
             MainForm_Resize(sender, e);
         }
@@ -49,7 +62,7 @@ namespace MolecularDynamics.DesktopUI
 
         private void Timer_Tick(Object sender, EventArgs e)
         {
-            intergrator.NextStep();
+            integrator.NextStep();
             glControl.Invalidate();
         }
 

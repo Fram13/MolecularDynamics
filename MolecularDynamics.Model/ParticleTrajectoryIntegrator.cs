@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MolecularDynamics.Model
 {
@@ -9,185 +8,131 @@ namespace MolecularDynamics.Model
     /// </summary>
     public partial class ParticleTrajectoryIntegrator
     {
-        #region Fields
-
-        private IList<Particle> particles;
-        private Vector3[] forces;
-        private Task[] computingTasks;
-        private ValueTuple<int, int>[] indexBlocks;
+        private ParticleGrid grid;
         private double step;
-        private double halfStep;
-        private double stepSquaredHalf;
-        private int threadCount;
-
-        #endregion Fields
-
-        #region Constructors
 
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
         /// </summary>
-        /// <param name="particles">Список частиц, образующих модерируемое вещество.</param>
+        /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
         /// <param name="step">Шаг интегрирования.</param>
-        /// <param name="threadCount">Количество потоков интегрирования.</param>
-        public ParticleTrajectoryIntegrator(IList<Particle> particles, double step, int threadCount)
+        public ParticleTrajectoryIntegrator(ParticleGrid grid, double step)
         {
-            this.particles = particles;
+            this.grid = grid;
             this.step = step;
-            this.threadCount = threadCount;
-
-            halfStep = step * 0.5;
-            stepSquaredHalf = step * step * 0.5;
-            forces = new Vector3[particles.Count];
-            computingTasks = new Task[threadCount];
-            indexBlocks = new ValueTuple<int, int>[threadCount];
-            InitializeIndexBlocks();
         }
-
-        #endregion Constructors
-
-        #region Methods
-
-        #region Private methods
-
-        /// <summary>
-        /// Инициализирует блоки индексов.
-        /// </summary>
-        private void InitializeIndexBlocks()
-        {
-            int particlesPerThread = particles.Count / threadCount;
-            int rest = particles.Count % threadCount;
-            int start = 0;
-
-            for (int i = 0; i < threadCount - 1; i++)
-            {
-                indexBlocks[i] = new ValueTuple<int, int>(start, start + particlesPerThread);
-                start += particlesPerThread;
-            }
-
-            indexBlocks[threadCount - 1] = new ValueTuple<int, int>(start, start + particlesPerThread + rest);
-        }
-
-        /// <summary>
-        /// Параллельно выполняет указанное действие для каждого блока индексов.
-        /// </summary>
-        /// <param name="action">Действие для каждого блока индексов.</param>        
-        private void ForEachIndexBlock(Action<int, int> action)
-        {
-            for (int i = 0; i < threadCount; i++)
-            {
-                int j = i;
-                computingTasks[i] = Task.Run(() => action.Invoke(indexBlocks[j].Item1, indexBlocks[j].Item2));
-            }
-
-            Task.WaitAll(computingTasks);
-        }
-
-        /// <summary>
-        /// Вычисляет ускорения взаимодействия для каждой пары частиц.
-        /// </summary>
-        private void ComputeAccelerations()
-        {
-            int count = particles.Count / threadCount;
-            int rest = particles.Count % threadCount;
-
-            for (int i = 0; i < count; i++)
-            {
-                for (int offset = 0; offset < threadCount; offset++)
-                {
-                    for (int k = 0; k < threadCount; k++)
-                    {
-                        int particleIndex = i * threadCount + k;
-                        int currenfOffset = offset;
-                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, currenfOffset));
-                    }
-
-                    Task.WaitAll(computingTasks);
-                }
-            }
-
-            if (rest != 0)
-            {
-                for (int offset = 0; offset < rest; offset++)
-                {
-                    for (int k = 0; k < rest; k++)
-                    {
-                        int particleIndex = count * threadCount + k;
-                        int currenfOffset = offset;
-                        computingTasks[k] = Task.Run(() => ComputeAcceleration(particleIndex, currenfOffset));
-                    }
-
-                    Task.WaitAll(computingTasks);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Вычисляет ускорение, являющееся результатом влияния остальных частиц на текущую.
-        /// </summary>
-        /// <param name="particleIndex">Индекс текущей частицы.</param>
-        /// <param name="offset">Смещение индексов остальных частиц.</param>
-        private void ComputeAcceleration(int particleIndex, int offset)
-        {
-            Particle current = particles[particleIndex];
-            int i = offset;
-
-            while (i < particleIndex)
-            {
-                forces[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
-                i += threadCount;
-            }
-
-            if (i == particleIndex)
-            {
-                i += threadCount;
-            }
-
-            while (i < particles.Count)
-            {
-                forces[particleIndex].AddToCurrent(current.InteractionFunction(current, particles[i]));
-                i += threadCount;
-            }
-        }
-
-        #endregion Private methods
-
-        #region Public methods
 
         /// <summary>
         /// Вычисляет следующий шаг движения частиц.
         /// </summary>
         public void NextStep()
         {
-            ForEachIndexBlock((start, end) =>
+            //вычисление сил зваимодействия между каждой парой частиц
+            ForEachCell(cell =>
             {
-                for (int i = start; i < end; i++)
+                IList<Particle> particles = cell.Particles;
+                ValueList<Vector3> forces = cell.Forces;
+                IList<ParticleGridCell> boundaryCells = cell.BoundaryCells;
+
+                for (int i = 0; i < cell.Forces.Count; i++)
                 {
-                    forces[i].X = 0.0;
-                    forces[i].Y = 0.0;
-                    forces[i].Z = 0.0;
+                    ref Vector3 f = ref cell.Forces.GetByRef(i);
+                    f.X = 0.0;
+                    f.Y = 0.0;
+                    f.Z = 0.0;
+                }
+
+                for (int i = 0; i < particles.Count; i++)
+                {
+                    Particle particle = particles[i];
+                    Func<Particle, Particle, Vector3> interactionFunction = particle.InteractionFunction;
+                    ref Vector3 force = ref forces.GetByRef(i);
+
+                    //вычисление сил взаимодействия с частицами в текущей ячейке
+                    for (int j = 0; j < i; j++)
+                    {
+                        force.AddToCurrent(interactionFunction(particle, particles[j]));
+                    }
+
+                    for (int j = i + 1; j < particles.Count; j++)
+                    {
+                        force.AddToCurrent(interactionFunction(particle, particles[j]));
+                    }
+
+                    //вычисление сил взаимодействия с частицами в соседних ячейках
+                    for (int j = 0; j < boundaryCells.Count; j++)
+                    {
+                        IList<Particle> boundaryCellParticles = boundaryCells[j].Particles;
+
+                        for (int k = 0; k < boundaryCellParticles.Count; k++)
+                        {
+                            force.AddToCurrent(interactionFunction(particle, boundaryCellParticles[k]));
+                        }
+                    }
                 }
             });
 
-            ComputeAccelerations();
-
-            ForEachIndexBlock((start, end) =>
+            //интегрирование Верле
+            ForEachCell(cell =>
             {
-                for (int i = start; i < end; i++)
-                {
-                    Vector3 velocity = particles[i].Velocity;
-                    velocity.AddToCurrent(forces[i].MultiplyToCurrent(step / particles[i].Mass));
-                    particles[i].Velocity = velocity;
+                IList<Particle> particles = cell.Particles;
+                ValueList<Vector3> forces = cell.Forces;
 
-                    Vector3 position = particles[i].Position;
+                for (int i = 0; i < particles.Count; i++)
+                {
+                    Particle particle = particles[i];
+                    ref Vector3 velocity = ref particle.GetVelocityByRef();
+                    ref Vector3 force = ref forces.GetByRef(i);
+
+                    force.MultiplyToCurrent(step / particle.Mass);
+                    velocity.AddToCurrent(force);
+
+                    ref Vector3 position = ref particle.GetPositionByRef();
                     position.AddToCurrent(velocity * step);
-                    particles[i].Position = position;
+                }
+            });
+
+            //перераспределение частиц по ячейкам
+            ForEachCell(cell =>
+            {
+                IList<Particle> particles = cell.Particles;
+                ValueList<Vector3> forces = cell.Forces;
+
+                for (int i = 0; i < particles.Count; i++)
+                {
+                    Particle particle = particles[i];
+                    ref Vector3 position = ref particle.GetPositionByRef();
+                    var containingCell = grid.GetContainingCell(ref position);
+
+                    if (containingCell != cell)
+                    {
+                        particles.RemoveAt(i);
+                        containingCell.Particles.Add(particle);
+                        forces.RemoveAt(i);
+                        containingCell.Forces.Add((0, 0, 0));
+
+                        //обработать перенос
+                    }
                 }
             });
         }
 
-        #endregion Public methods
-
-        #endregion Methods
+        /// <summary>
+        /// Выполняет указанное действие для каждой ячейки сетки частиц.
+        /// </summary>
+        /// <param name="action">Действие для каждоЙ ячейки.</param>        
+        private void ForEachCell(Action<ParticleGridCell> action)
+        {
+            for (int i = 0; i < grid.Rows; i++)
+            {
+                for (int j = 0; j < grid.Columns; j++)
+                {
+                    for (int k = 0; k < grid.Layers; k++)
+                    {
+                        action(grid[i, j, k]);
+                    }
+                }
+            }
+        }
     }
 }

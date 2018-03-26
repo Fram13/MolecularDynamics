@@ -285,9 +285,9 @@ namespace MolecularDynamics.Model
         /// Создает новый экземпляр <see cref="Vector3"/>.
         /// </summary>
         /// <param name="tuple">Кортеж компонент вектора.</param>
-        public static implicit operator Vector3((double x, double y, double z) tuple)
+        public static implicit operator Vector3((double X, double Y, double Z) tuple)
         {
-            return new Vector3(tuple.x, tuple.y, tuple.z);
+            return new Vector3(tuple.X, tuple.Y, tuple.Z);
         }
 
         #endregion Operator overloads
