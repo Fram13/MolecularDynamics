@@ -8,6 +8,7 @@ namespace MolecularDynamics.Model
     /// </summary>
     public class ParticleGrid
     {
+        private Vector3 spaceSize;
         private ParticleGridCell[,,] cells;
         private double interactionRadius;
 
@@ -40,6 +41,7 @@ namespace MolecularDynamics.Model
             cells = new ParticleGridCell[cellCount.X, cellCount.Y, cellCount.Z];
             this.CellCount = cellCount;
             this.interactionRadius = interactionRadius;
+            this.spaceSize = spaceSize;
 
             CellSize.X = spaceSize.X / cellCount.X;
             CellSize.Y = spaceSize.Y / cellCount.Y;
@@ -67,20 +69,33 @@ namespace MolecularDynamics.Model
         /// <summary>
         /// Возвращает ячейку, содержащую частицу с заданным положением в пространстве.
         /// </summary>
+        /// <param name="cellIndex"></param>
         /// <param name="position">Положение частицы в пространстве.</param>
         /// <returns></returns>
-        public ParticleGridCell GetContainingCell(ref Vector3 position)
+        public (ParticleGridCell, Vector3) GetContainingCell((int X, int Y, int Z) cellIndex, ref Vector3 position)
         {
-            int r = (int)Math.Floor(position.X / CellSize.X) % CellCount.X;
-            r += r < 0 ? CellCount.X : 0;
+            (int X, int Y, int Z) containingCellIndex;
 
-            int c = (int)Math.Floor(position.Y / CellSize.Y) % CellCount.Y;
-            c += c < 0 ? CellCount.Y : 0;
+            containingCellIndex.X = (int)Math.Floor(position.X / CellSize.X) % CellCount.X;
+            containingCellIndex.X += containingCellIndex.X < 0 ? CellCount.X : 0;
 
-            int l = (int)Math.Floor(position.Z / CellSize.Z) % CellCount.Z;
-            l += l < 0 ? CellCount.Z : 0;
+            containingCellIndex.Y = (int)Math.Floor(position.Y / CellSize.Y) % CellCount.Y;
+            containingCellIndex.Y += containingCellIndex.Y < 0 ? CellCount.Y : 0;
 
-            return cells[r, c, l];
+            containingCellIndex.Z = (int)Math.Floor(position.Z / CellSize.Z) % CellCount.Z;
+            containingCellIndex.Z += containingCellIndex.Z < 0 ? CellCount.Z : 0;
+
+            (int X, int Y, int Z) changeOfIndex;
+            changeOfIndex.X = containingCellIndex.X - cellIndex.X;
+            changeOfIndex.Y = containingCellIndex.Y - cellIndex.Y;
+            changeOfIndex.Z = containingCellIndex.Z - cellIndex.Z;
+
+            Vector3 changeOfPosition = new Vector3(0.0, 0.0, 0.0);
+            changeOfPosition.X += Math.Abs(changeOfIndex.X) == CellCount.X - 1 ? Math.Sign(changeOfIndex.X) * spaceSize.X : 0.0;
+            changeOfPosition.Y += Math.Abs(changeOfIndex.Y) == CellCount.Y - 1 ? Math.Sign(changeOfIndex.Y) * spaceSize.Y : 0.0;
+            changeOfPosition.Z += Math.Abs(changeOfIndex.Z) == CellCount.Z - 1 ? Math.Sign(changeOfIndex.Z) * spaceSize.Z : 0.0;
+
+            return (cells[containingCellIndex.X, containingCellIndex.Y, containingCellIndex.Z], changeOfPosition);
         }
 
         /// <summary>
@@ -88,7 +103,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         public void RedistributeParticles()
         {
-            ForEachCell(cell =>
+            ForEachCell((cell, index) =>
             {
                 IList<Particle> particles = cell.Particles;
 
@@ -96,14 +111,13 @@ namespace MolecularDynamics.Model
                 {
                     Particle particle = particles[i];
                     ref Vector3 position = ref particle.GetPositionByRef();
-                    var containingCell = GetContainingCell(ref position);
+                    var (containingCell, changeOfPosition) = GetContainingCell(index, ref position);
 
                     if (containingCell != cell)
                     {
                         particles.RemoveAt(i);
                         containingCell.Particles.Add(particle);
-
-                        //обработать перенос
+                        position.AddToCurrent(changeOfPosition);
                     }
                 }
             });
