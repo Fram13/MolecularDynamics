@@ -8,6 +8,11 @@ namespace MolecularDynamics.Model
     public class ParticleGridCell
     {
         /// <summary>
+        /// Положение центра ячейки.
+        /// </summary>
+        public Vector3 Position { get; set; }
+
+        /// <summary>
         /// Список частиц, находящихся в текущей ячейке.
         /// </summary>
         public IList<Particle> Particles { get; } = new List<Particle>();

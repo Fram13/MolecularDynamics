@@ -14,26 +14,27 @@ namespace MolecularDynamics.Model
         /// <param name="cellCount"></param>
         /// <param name="mass">Масса частицы.</param>
         /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
-        public static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double mass, Func<Particle, Particle, Vector3> interactionFunction)
+        /// <param name="interactionRadius"></param>
+        public static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double mass, Func<Particle, Particle, Vector3> interactionFunction, double interactionRadius)
         {
-            return GenerateGrid(spaceSize, cellCount, (grid, cell, origin) =>
+            return GenerateGrid(spaceSize, cellCount, interactionRadius, (grid, cell) =>
             {
                 cell.Particles.Add(new Particle()
                 {
                     InteractionFunction = interactionFunction,
                     Mass = mass,
-                    Position = origin + (grid.CellWidth / 2, grid.CellHeight / 2, grid.CellDepth / 2)
+                    Position = cell.Position
                 });
 
-                double x = grid.CellWidth * 0.25;
+                double x = cell.Position.X - grid.CellSize.X * 0.25;
 
                 for (int i = 0; i < 2; i++)
                 {
-                    double y = grid.CellHeight * 0.25;
+                    double y = cell.Position.Y - grid.CellSize.Y * 0.25;
 
                     for (int j = 0; j < 2; j++)
                     {
-                        double z = grid.CellDepth * 0.25;
+                        double z = cell.Position.Z - grid.CellSize.Z * 0.25;
 
                         for (int k = 0; k < 2; k++)
                         {
@@ -41,53 +42,36 @@ namespace MolecularDynamics.Model
                             {
                                 InteractionFunction = interactionFunction,
                                 Mass = mass,
-                                Position = origin + (x, y, z)
+                                Position = (x, y, z)
                             });
 
-                            z += grid.CellDepth * 0.5;
+                            z += grid.CellSize.X * 0.5;
                         }
 
-                        y += grid.CellHeight * 0.5;
+                        y += grid.CellSize.Y * 0.5;
                     }
 
-                    x += grid.CellWidth * 0.5;
+                    x += grid.CellSize.Z * 0.5;
                 }
             });
         }
 
-        private static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, Action<ParticleGrid, ParticleGridCell, Vector3> generationAction)
+        private static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double interactionRadius, Action<ParticleGrid, ParticleGridCell> generationAction)
         {
-            ParticleGrid grid = new ParticleGrid(spaceSize, cellCount);
+            ParticleGrid grid = new ParticleGrid(spaceSize, cellCount, interactionRadius);
 
-            ForEachCell(grid, generationAction);
+            for (int i = 0; i < grid.CellCount.X; i++)
+            {
+                for (int j = 0; j < grid.CellCount.Y; j++)
+                {
+                    for (int k = 0; k < grid.CellCount.Z; k++)
+                    {
+                        generationAction(grid, grid[i, j, k]);
+                    }
+                }
+            }
 
             return grid;
-        }
-
-        private static void ForEachCell(ParticleGrid grid, Action<ParticleGrid, ParticleGridCell, Vector3> generationAction)
-        {
-            double x = 0.0;
-
-            for (int i = 0; i < grid.Rows; i++)
-            {
-                double y = 0.0;
-
-                for (int j = 0; j < grid.Columns; j++)
-                {
-                    double z = 0.0;
-
-                    for (int k = 0; k < grid.Layers; k++)
-                    {
-                        generationAction(grid, grid[i, j, k], (x, y, z));
-
-                        z += grid.CellDepth;
-                    }
-
-                    y += grid.CellHeight;
-                }
-
-                x += grid.CellWidth;
-            }
         }
     }
 }

@@ -16,7 +16,7 @@ namespace MolecularDynamics.PerformanceTests
         /// <returns></returns>
         private static long TimeTest(int rows, int columns, int steps, int threads)
         {
-            var grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction);
+            var grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction, 0.01);
             var integrator = new ParticleTrajectoryIntegrator(grid, 0.00125);
 
             Stopwatch sw = new Stopwatch();
@@ -24,7 +24,7 @@ namespace MolecularDynamics.PerformanceTests
 
             for (int i = 0; i < steps; i++)
             {
-                integrator.NextStepAsync();
+                integrator.NextStep();
             }
 
             sw.Stop();

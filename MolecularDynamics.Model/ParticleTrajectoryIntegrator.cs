@@ -11,7 +11,7 @@ namespace MolecularDynamics.Model
     {
         private ParticleGrid grid;
         private double step;
-        private bool calculating;
+        //private bool calculating;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
@@ -22,37 +22,15 @@ namespace MolecularDynamics.Model
         {
             this.grid = grid;
             this.step = step;
-
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    if (calculating)
-                    {
-                        NextStep();
-                        calculating = false;
-                    }
-                }
-            });
-        }
-
-        public void Wait()
-        {
-            while (calculating);
-        }
-
-        public void NextStepAsync()
-        {
-            calculating = true;
         }
 
         /// <summary>
         /// Вычисляет следующий шаг движения частиц.
         /// </summary>
-        private void NextStep()
+        public void NextStep()
         {
             //вычисление сил зваимодействия между каждой парой частиц
-            ForEachCell(cell =>
+            grid.ForEachCell(cell =>
             {
                 IList<Particle> particles = cell.Particles;
                 IList<ParticleGridCell> boundaryCells = cell.BoundaryCells;
@@ -92,7 +70,7 @@ namespace MolecularDynamics.Model
             });
 
             //интегрирование Верле
-            ForEachCell(cell =>
+            grid.ForEachCell(cell =>
             {
                 IList<Particle> particles = cell.Particles;
 
@@ -110,44 +88,7 @@ namespace MolecularDynamics.Model
                 }
             });
 
-            //перераспределение частиц по ячейкам
-            ForEachCell(cell =>
-            {
-                IList<Particle> particles = cell.Particles;
-
-                for (int i = 0; i < particles.Count; i++)
-                {
-                    Particle particle = particles[i];
-                    ref Vector3 position = ref particle.GetPositionByRef();
-                    var containingCell = grid.GetContainingCell(ref position);
-
-                    if (containingCell != cell)
-                    {
-                        particles.RemoveAt(i);
-                        containingCell.Particles.Add(particle);
-
-                        //обработать перенос
-                    }
-                }
-            });
-        }
-
-        /// <summary>
-        /// Выполняет указанное действие для каждой ячейки сетки частиц.
-        /// </summary>
-        /// <param name="action">Действие для каждоЙ ячейки.</param>        
-        private void ForEachCell(Action<ParticleGridCell> action)
-        {
-            for (int i = 0; i < grid.Rows; i++)
-            {
-                for (int j = 0; j < grid.Columns; j++)
-                {
-                    for (int k = 0; k < grid.Layers; k++)
-                    {
-                        action(grid[i, j, k]);
-                    }
-                }
-            }
+            grid.RedistributeParticles();
         }
     }
 }

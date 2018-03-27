@@ -32,24 +32,24 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
 
-            grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction);
+            grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction, 0.01);
             integrator = new ParticleTrajectoryIntegrator(grid, 0.00125);
             renderer = new Renderer(Color.White, 0.03, 10);
 
             particles = new List<Particle>();
             positions = new List<Vector3>();
 
-            for (int i = 0; i < grid.Rows; i++)
+            for (int i = 0; i < grid.CellCount.X; i++)
             {
-                for (int j = 0; j < grid.Columns; j++)
+                for (int j = 0; j < grid.CellCount.Y; j++)
                 {
-                    for (int k = 0; k < grid.Layers; k++)
+                    for (int k = 0; k < grid.CellCount.Z; k++)
                     {
                         particles.AddRange(grid[i, j, k].Particles);
 
-                        foreach (var item in grid[i, j, k].Particles)
+                        foreach (var particle in grid[i, j, k].Particles)
                         {
-                            positions.Add(new Vector3(0, 0, 0));
+                            positions.Add(particle.Position);
                         }
                     }
                 }
@@ -69,14 +69,12 @@ namespace MolecularDynamics.DesktopUI
 
         private void Timer_Tick(Object sender, EventArgs e)
         {
-            integrator.Wait();
-
             for (int i = 0; i < particles.Count; i++)
             {
                 positions[i] = particles[i].Position;
             }
 
-            integrator.NextStepAsync();
+            integrator.NextStep();
             glControl.Invalidate();
         }
 
