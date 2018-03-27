@@ -12,6 +12,7 @@ namespace MolecularDynamics.DesktopUI
         private ParticleTrajectoryIntegrator integrator;
         private Renderer renderer;
         private List<Particle> particles;
+        private List<Vector3> positions;
 
         private bool glControlLoaded;
         private readonly double toRadians = Math.PI / 180.0;
@@ -31,11 +32,12 @@ namespace MolecularDynamics.DesktopUI
         {
             glControlLoaded = true;
 
-            grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (3, 3, 3), 1, InteractionFunctions.GravitationalInteraction);
+            grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction);
             integrator = new ParticleTrajectoryIntegrator(grid, 0.00125);
-            renderer = new Renderer(Color.White, 0.005, 10);
+            renderer = new Renderer(Color.White, 0.03, 10);
 
             particles = new List<Particle>();
+            positions = new List<Vector3>();
 
             for (int i = 0; i < grid.Rows; i++)
             {
@@ -44,6 +46,11 @@ namespace MolecularDynamics.DesktopUI
                     for (int k = 0; k < grid.Layers; k++)
                     {
                         particles.AddRange(grid[i, j, k].Particles);
+
+                        foreach (var item in grid[i, j, k].Particles)
+                        {
+                            positions.Add(new Vector3(0, 0, 0));
+                        }
                     }
                 }
             }
@@ -62,7 +69,14 @@ namespace MolecularDynamics.DesktopUI
 
         private void Timer_Tick(Object sender, EventArgs e)
         {
-            integrator.NextStep();
+            integrator.Wait();
+
+            for (int i = 0; i < particles.Count; i++)
+            {
+                positions[i] = particles[i].Position;
+            }
+
+            integrator.NextStepAsync();
             glControl.Invalidate();
         }
 
@@ -70,7 +84,7 @@ namespace MolecularDynamics.DesktopUI
 
         private void GlControl_Paint(Object sender, PaintEventArgs e)
         {
-            renderer.Paint(particles);
+            renderer.Paint(positions);
             glControl.SwapBuffers();
         }
 

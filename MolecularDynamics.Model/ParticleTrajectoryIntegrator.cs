@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MolecularDynamics.Model
 {
@@ -10,6 +11,7 @@ namespace MolecularDynamics.Model
     {
         private ParticleGrid grid;
         private double step;
+        private bool calculating;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
@@ -20,12 +22,34 @@ namespace MolecularDynamics.Model
         {
             this.grid = grid;
             this.step = step;
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    if (calculating)
+                    {
+                        NextStep();
+                        calculating = false;
+                    }
+                }
+            });
+        }
+
+        public void Wait()
+        {
+            while (calculating);
+        }
+
+        public void NextStepAsync()
+        {
+            calculating = true;
         }
 
         /// <summary>
         /// Вычисляет следующий шаг движения частиц.
         /// </summary>
-        public void NextStep()
+        private void NextStep()
         {
             //вычисление сил зваимодействия между каждой парой частиц
             ForEachCell(cell =>

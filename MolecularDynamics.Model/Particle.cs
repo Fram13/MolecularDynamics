@@ -25,6 +25,8 @@ namespace MolecularDynamics.Model
             }
         }
 
+        public Vector3 PreviousPosition { get; set; }
+
         /// <summary>
         /// Текущвя скорость частицы.
         /// </summary>

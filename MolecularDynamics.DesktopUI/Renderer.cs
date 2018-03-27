@@ -9,15 +9,12 @@ namespace MolecularDynamics.DesktopUI
 {
     public class Renderer
     {
-        private List<Vector3d> sphereVertices;
+        private int particleDisplayList;
         private Matrix4d view;
-        private int faces;
 
         public Renderer(Color clearColor, double radius, int faces)
         {
-            this.faces = faces;
-            sphereVertices = new List<Vector3d>();
-            InitializeSphereVertices(radius);
+            InitializeSphereVertices(radius, faces);
 
             GL.ClearColor(clearColor);
             GL.Enable(EnableCap.DepthTest);
@@ -25,12 +22,16 @@ namespace MolecularDynamics.DesktopUI
             view = Matrix4d.Identity;
         }
 
-        private void InitializeSphereVertices(double radius)
+        private void InitializeSphereVertices(double radius, int faces)
         {
+            particleDisplayList = GL.GenLists(1);
+            GL.NewList(particleDisplayList, ListMode.Compile);
+            GL.Begin(BeginMode.QuadStrip);
+
             double max = 2.0 * Math.PI;
             double step = max / faces;
 
-            for (double theta = 0.0; theta < max; theta += step)
+            for (double theta = 0.0; theta < Math.PI; theta += step)
             {
                 double sinTheta = Math.Sin(theta);
                 double cosTheta = Math.Cos(theta);
@@ -44,15 +45,20 @@ namespace MolecularDynamics.DesktopUI
                     double y = radius * sinTheta * sinPhi;
                     double z = radius * cosTheta;
 
-                    sphereVertices.Add(new Vector3d(x, y, z));
+                    GL.Vertex3(x, y, z);
+                    GL.Normal3(x, y, z);
 
                     x = radius * Math.Sin(theta + step) * cosPhi;
                     y = radius * Math.Sin(theta + step) * sinPhi;
                     z = radius * Math.Cos(theta + step);
 
-                    sphereVertices.Add(new Vector3d(x, y, z));
+                    GL.Vertex3(x, y, z);
+                    GL.Normal3(x, y, z);
                 }
             }
+
+            GL.End();
+            GL.EndList();
         }
 
         public void Translate(double dx, double dy)
@@ -85,16 +91,19 @@ namespace MolecularDynamics.DesktopUI
             GL.Ortho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
         }
 
-        public void Paint(IEnumerable<Particle> particles)
+        public void Paint(IEnumerable<Model.Vector3> particlePositions)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.Lighting);
             GL.Enable(EnableCap.Light0);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
-            foreach (var particle in particles)
+            foreach (var position in particlePositions)
             {
-                PaintParticle(particle);
+                GL.PushMatrix();
+                GL.Translate(position.X, position.Y, position.Z);
+                GL.CallList(particleDisplayList);
+                GL.PopMatrix();
             }
 
             GL.Disable(EnableCap.Lighting);
@@ -103,19 +112,6 @@ namespace MolecularDynamics.DesktopUI
             GL.LoadMatrix(ref view);
             GL.Flush();
             GL.Finish();
-        }
-
-        private void PaintParticle(Particle particle)
-        {
-            GL.Begin(BeginMode.QuadStrip);
-
-            for (int i = 0; i < sphereVertices.Count; i++)
-            {
-                GL.Normal3(sphereVertices[i]);
-                GL.Vertex3(sphereVertices[i].X + particle.Position.X, sphereVertices[i].Y + particle.Position.Y, sphereVertices[i].Z + particle.Position.Z);
-            }
-
-            GL.End();
         }
     }
 }
