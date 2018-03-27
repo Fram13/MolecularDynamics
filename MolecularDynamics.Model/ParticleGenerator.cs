@@ -44,8 +44,6 @@ namespace MolecularDynamics.Model
                                 Position = origin + (x, y, z)
                             });
 
-                            cell.Forces.Add(new Vector3(0, 0, 0));
-
                             z += grid.CellDepth * 0.5;
                         }
 
@@ -54,8 +52,6 @@ namespace MolecularDynamics.Model
 
                     x += grid.CellWidth * 0.5;
                 }
-
-                cell.Forces.Add(new Vector3(0, 0, 0));
             });
         }
 

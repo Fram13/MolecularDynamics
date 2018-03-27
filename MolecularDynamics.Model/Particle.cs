@@ -9,6 +9,7 @@ namespace MolecularDynamics.Model
     {
         private Vector3 position;
         private Vector3 velocity;
+        private Vector3 force;
 
         /// <summary>
         /// Текущее положение частицы в пространстве.
@@ -25,8 +26,6 @@ namespace MolecularDynamics.Model
             }
         }
 
-        public Vector3 PreviousPosition { get; set; }
-
         /// <summary>
         /// Текущвя скорость частицы.
         /// </summary>
@@ -39,6 +38,21 @@ namespace MolecularDynamics.Model
             set
             {
                 velocity = value;
+            }
+        }
+
+        /// <summary>
+        /// Текущая сила, дествующая на частицу.
+        /// </summary>
+        public Vector3 Force
+        {
+            get
+            {
+                return force;
+            }
+            set
+            {
+                force = value;
             }
         }
 
@@ -66,6 +80,14 @@ namespace MolecularDynamics.Model
         public ref Vector3 GetVelocityByRef()
         {
             return ref velocity;
+        }
+
+        /// <summary>
+        /// Возвращает силу, дествующую на частицу, по ссылке.
+        /// </summary>
+        public ref Vector3 GetForceByRef()
+        {
+            return ref force;
         }
     }
 }

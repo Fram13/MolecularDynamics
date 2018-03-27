@@ -24,7 +24,7 @@ namespace MolecularDynamics.PerformanceTests
 
             for (int i = 0; i < steps; i++)
             {
-                integrator.NextStep();
+                integrator.NextStepAsync();
             }
 
             sw.Stop();

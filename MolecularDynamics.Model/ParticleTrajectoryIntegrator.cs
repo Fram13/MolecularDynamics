@@ -55,22 +55,17 @@ namespace MolecularDynamics.Model
             ForEachCell(cell =>
             {
                 IList<Particle> particles = cell.Particles;
-                ValueList<Vector3> forces = cell.Forces;
                 IList<ParticleGridCell> boundaryCells = cell.BoundaryCells;
-
-                for (int i = 0; i < cell.Forces.Count; i++)
-                {
-                    ref Vector3 f = ref cell.Forces.GetByRef(i);
-                    f.X = 0.0;
-                    f.Y = 0.0;
-                    f.Z = 0.0;
-                }
 
                 for (int i = 0; i < particles.Count; i++)
                 {
-                    Particle particle = particles[i];
+                    Particle particle = particles[i];                    
                     Func<Particle, Particle, Vector3> interactionFunction = particle.InteractionFunction;
-                    ref Vector3 force = ref forces.GetByRef(i);
+                    ref Vector3 force = ref particle.GetForceByRef();
+
+                    force.X = 0.0;
+                    force.Y = 0.0;
+                    force.Z = 0.0;
 
                     //вычисление сил взаимодействия с частицами в текущей ячейке
                     for (int j = 0; j < i; j++)
@@ -100,13 +95,12 @@ namespace MolecularDynamics.Model
             ForEachCell(cell =>
             {
                 IList<Particle> particles = cell.Particles;
-                ValueList<Vector3> forces = cell.Forces;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];
                     ref Vector3 velocity = ref particle.GetVelocityByRef();
-                    ref Vector3 force = ref forces.GetByRef(i);
+                    ref Vector3 force = ref particle.GetForceByRef();
 
                     force.MultiplyToCurrent(step / particle.Mass);
                     velocity.AddToCurrent(force);
@@ -120,7 +114,6 @@ namespace MolecularDynamics.Model
             ForEachCell(cell =>
             {
                 IList<Particle> particles = cell.Particles;
-                ValueList<Vector3> forces = cell.Forces;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
@@ -132,8 +125,6 @@ namespace MolecularDynamics.Model
                     {
                         particles.RemoveAt(i);
                         containingCell.Particles.Add(particle);
-                        forces.RemoveAt(i);
-                        containingCell.Forces.Add((0, 0, 0));
 
                         //обработать перенос
                     }
