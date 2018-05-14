@@ -1,77 +1,83 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MolecularDynamics.Model
 {
     /// <summary>
     /// Представляет генератор частиц.
     /// </summary>
-    public static class ParticleGridGenerator
+    public static class ParticleGenerator
     {
         /// <summary>
         /// Генерирует частицы, расположенные в пересечениях строк и столбцов объемной сетки.
         /// </summary>
-        /// <param name="spaceSize"></param>
-        /// <param name="cellCount"></param>
+        /// <param name="grid">Заполняемая сетка.</param>
         /// <param name="mass">Масса частицы.</param>
         /// <param name="interactionFunction">Функция, вычисляющая ускорение взаимодействия пары частиц.</param>
-        /// <param name="interactionRadius"></param>
-        public static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double mass, Func<Particle, Particle, Vector3> interactionFunction, double interactionRadius)
+        public static List<Particle> GenerateParticles(this ParticleGrid grid, double mass, Func<Particle, Particle, Vector3> interactionFunction)
         {
-            return GenerateGrid(spaceSize, cellCount, interactionRadius, (grid, cell) =>
+            //List<Particle> particles = new List<Particle>();
+
+            //grid.ForEachCell((cell, indicies) =>
+            //{
+            //    double x = cell.Position.X - grid.CellSize.X * 0.25;
+
+            //    for (int i = 0; i < 2; i++)
+            //    {
+            //        double y = cell.Position.Y - grid.CellSize.Y * 0.25;
+
+            //        for (int j = 0; j < 2; j++)
+            //        {
+            //            double z = cell.Position.Z - grid.CellSize.Z * 0.25;
+
+            //            for (int k = 0; k < 2; k++)
+            //            {
+            //                Particle particle = new Particle()
+            //                {
+            //                    InteractionFunction = interactionFunction,
+            //                    Mass = mass,
+            //                    Position = (x, y, z)
+            //                };
+
+            //                cell.Particles.Add(particle);
+
+            //                lock (particles)
+            //                {
+            //                    particles.Add(particle);
+            //                }
+
+            //                z += grid.CellSize.X * 0.5;
+            //            }
+
+            //            y += grid.CellSize.Y * 0.5;
+            //        }
+
+            //        x += grid.CellSize.Z * 0.5;
+            //    }
+            //});
+
+            //return particles;
+
+            List<Particle> particles = new List<Particle>();
+
+            grid.ForEachCell((cell, indicies) =>
             {
-                cell.Particles.Add(new Particle()
+                Particle particle = new Particle()
                 {
                     InteractionFunction = interactionFunction,
                     Mass = mass,
                     Position = cell.Position
-                });
+                };
 
-                double x = cell.Position.X - grid.CellSize.X * 0.25;
+                cell.Particles.Add(particle);
 
-                for (int i = 0; i < 2; i++)
+                lock (particles)
                 {
-                    double y = cell.Position.Y - grid.CellSize.Y * 0.25;
-
-                    for (int j = 0; j < 2; j++)
-                    {
-                        double z = cell.Position.Z - grid.CellSize.Z * 0.25;
-
-                        for (int k = 0; k < 2; k++)
-                        {
-                            cell.Particles.Add(new Particle()
-                            {
-                                InteractionFunction = interactionFunction,
-                                Mass = mass,
-                                Position = (x, y, z)
-                            });
-
-                            z += grid.CellSize.X * 0.5;
-                        }
-
-                        y += grid.CellSize.Y * 0.5;
-                    }
-
-                    x += grid.CellSize.Z * 0.5;
+                    particles.Add(particle);
                 }
             });
-        }
 
-        private static ParticleGrid GenerateGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, double interactionRadius, Action<ParticleGrid, ParticleGridCell> generationAction)
-        {
-            ParticleGrid grid = new ParticleGrid(spaceSize, cellCount, interactionRadius);
-
-            for (int i = 0; i < grid.CellCount.X; i++)
-            {
-                for (int j = 0; j < grid.CellCount.Y; j++)
-                {
-                    for (int k = 0; k < grid.CellCount.Z; k++)
-                    {
-                        generationAction(grid, grid[i, j, k]);
-                    }
-                }
-            }
-
-            return grid;
+            return particles;
         }
     }
 }

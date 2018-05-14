@@ -7,59 +7,25 @@ namespace MolecularDynamics.Model
     /// </summary>
     public class Particle
     {
-        private Vector3 position;
-        private Vector3 velocity;
-        private Vector3 force;
+        /// <summary>
+        /// Положение частицы в пространстве.
+        /// </summary>
+        public Vector3 Position;
 
         /// <summary>
-        /// Текущее положение частицы в пространстве.
+        /// Скорость частицы.
         /// </summary>
-        public Vector3 Position
-        {
-            get
-            {
-                return position;
-            }
-            set
-            {
-                position = value;
-            }
-        }
+        public Vector3 Velocity;
 
         /// <summary>
-        /// Текущвя скорость частицы.
+        /// Сила, дествующая на частицу.
         /// </summary>
-        public Vector3 Velocity
-        {
-            get
-            {
-                return velocity;
-            }
-            set
-            {
-                velocity = value;
-            }
-        }
-
-        /// <summary>
-        /// Текущая сила, дествующая на частицу.
-        /// </summary>
-        public Vector3 Force
-        {
-            get
-            {
-                return force;
-            }
-            set
-            {
-                force = value;
-            }
-        }
+        public Vector3 Force;
 
         /// <summary>
         /// Масса частицы.
         /// </summary>
-        public double Mass { get; set; }
+        public double Mass;
 
         /// <summary>
         /// Функция, вычисляющая силу взаимодействия пары частиц.
@@ -71,7 +37,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         public ref Vector3 GetPositionByRef()
         {
-            return ref position;
+            return ref Position;
         }
 
         /// <summary>
@@ -79,7 +45,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         public ref Vector3 GetVelocityByRef()
         {
-            return ref velocity;
+            return ref Velocity;
         }
 
         /// <summary>
@@ -87,7 +53,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         public ref Vector3 GetForceByRef()
         {
-            return ref force;
+            return ref Force;
         }
     }
 }

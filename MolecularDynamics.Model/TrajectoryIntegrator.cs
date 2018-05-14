@@ -1,24 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MolecularDynamics.Model
 {
     /// <summary>
     /// Представляет интегратор уравнений движения частиц.
     /// </summary>
-    public partial class ParticleTrajectoryIntegrator
+    public partial class TrajectoryIntegrator
     {
         private ParticleGrid grid;
         private double step;
-        //private bool calculating;
 
         /// <summary>
-        /// Создает новый экземпляр <see cref="ParticleTrajectoryIntegrator"/>.
+        /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
         /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
         /// <param name="step">Шаг интегрирования.</param>
-        public ParticleTrajectoryIntegrator(ParticleGrid grid, double step)
+        public TrajectoryIntegrator(ParticleGrid grid, double step)
         {
             this.grid = grid;
             this.step = step;
@@ -30,10 +28,10 @@ namespace MolecularDynamics.Model
         public void NextStep()
         {
             //вычисление сил зваимодействия между каждой парой частиц
-            grid.ForEachCell(cell =>
+            grid.ForEachCell((cell, indicies) =>
             {
                 IList<Particle> particles = cell.Particles;
-                IList<ParticleGridCell> boundaryCells = cell.BoundaryCells;
+                IList<ParticleGrid.Cell> boundaryCells = cell.BoundaryCells;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
@@ -70,7 +68,7 @@ namespace MolecularDynamics.Model
             });
 
             //интегрирование Верле
-            grid.ForEachCell(cell =>
+            grid.ForEachCell((cell, indicies) =>
             {
                 IList<Particle> particles = cell.Particles;
 

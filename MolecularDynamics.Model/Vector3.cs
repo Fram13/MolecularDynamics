@@ -10,106 +10,22 @@ namespace MolecularDynamics.Model
     {
         #region Fields
 
-        private double x;
-        private double y;
-        private double z;
+        /// <summary>
+        /// Первая компонента вектора.
+        /// </summary>
+        public double X;
+
+        /// <summary>
+        /// Вторая компонента вектора.
+        /// </summary>
+        public double Y;
+
+        /// <summary>
+        /// Третья компонента вектора.
+        /// </summary>
+        public double Z;
 
         #endregion Fields
-
-        #region Properties
-
-        /// <summary>
-        /// Возвращает или задает указанную компоненту вектора.
-        /// </summary>
-        /// <param name="index">Индекс компоненты.</param>
-        /// <exception cref="IndexOutOfRangeException">Индекс находится вне границ массива.</exception>
-        public double this[int index]
-        {
-            get
-            {
-                switch (index)
-                {
-                    case 0:
-                        return x;
-
-                    case 1:
-                        return y;
-
-                    case 2:
-                        return z;
-
-                    default:
-                        throw new IndexOutOfRangeException("Индекс находится вне границ массива.");
-                }
-            }
-            set
-            {
-                switch (index)
-                {
-                    case 0:
-                        x = value;
-                        break;
-
-                    case 1:
-                        y = value;
-                        break;
-
-                    case 2:
-                        z = value;
-                        break;
-
-                    default:
-                        throw new IndexOutOfRangeException("Индекс находится вне границ массива.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Возвращает или задает первую компоненту вектора.
-        /// </summary>
-        public double X
-        {
-            get
-            {
-                return x;
-            }
-            set
-            {
-                x = value;
-            }
-        }
-
-        /// <summary>
-        /// Возвращает или задает вторую компоненту вектора.
-        /// </summary>
-        public double Y
-        {
-            get
-            {
-                return y;
-            }
-            set
-            {
-                y = value;
-            }
-        }
-
-        /// <summary>
-        /// Возвращает или задает третью компоненту вектора.
-        /// </summary>
-        public double Z
-        {
-            get
-            {
-                return z;
-            }
-            set
-            {
-                z = value;
-            }
-        }
-
-        #endregion Properties
 
         #region Constructors
 
@@ -121,9 +37,9 @@ namespace MolecularDynamics.Model
         /// <param name="z">Третья компонента вектора.</param>
         public Vector3(double x, double y, double z)
         {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            X = x;
+            Y = y;
+            Z = z;
         }
 
         #endregion Constructors
@@ -136,7 +52,7 @@ namespace MolecularDynamics.Model
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(Math.Round(x, 3)).Append("; ").Append(Math.Round(y, 3)).Append("; ").Append(Math.Round(z, 3));
+            sb.Append(Math.Round(X, 3)).Append("; ").Append(Math.Round(Y, 3)).Append("; ").Append(Math.Round(Z, 3));
 
             return sb.ToString();
         }
@@ -146,7 +62,15 @@ namespace MolecularDynamics.Model
         /// </summary>
         public double Norm()
         {
-            return Math.Sqrt(x * x + y * y + z * z);
+            return Math.Sqrt(NormSquared());
+        }
+
+        /// <summary>
+        /// Возвращает вторую норму вектора в квадрате.
+        /// </summary>
+        public double NormSquared()
+        {
+            return X * X + Y * Y + Z * Z;
         }
 
         /// <summary>
@@ -155,7 +79,7 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 Add(Vector3 other)
         {
-            return new Vector3(this.x + other.x, this.y + other.y, this.z + other.z);
+            return new Vector3(this.X + other.X, this.Y + other.Y, this.Z + other.Z);
         }
 
         /// <summary>
@@ -164,9 +88,9 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 AddToCurrent(Vector3 other)
         {
-            this.x += other.x;
-            this.y += other.y;
-            this.z += other.z;
+            this.X += other.X;
+            this.Y += other.Y;
+            this.Z += other.Z;
 
             return this;
         }
@@ -177,7 +101,7 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 Subtract(Vector3 other)
         {
-            return new Vector3(this.x - other.x, this.y - other.y, this.z - other.z);
+            return new Vector3(this.X - other.X, this.Y - other.Y, this.Z - other.Z);
         }
 
         /// <summary>
@@ -186,9 +110,9 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 SubtractToCurrent(Vector3 other)
         {
-            this.x -= other.x;
-            this.y -= other.y;
-            this.z -= other.z;
+            this.X -= other.X;
+            this.Y -= other.Y;
+            this.Z -= other.Z;
 
             return this;
         }
@@ -199,7 +123,7 @@ namespace MolecularDynamics.Model
         /// <param name="other">Скаляр.</param>
         public Vector3 Multiply(double other)
         {
-            return new Vector3(x * other, y * other, z * other);
+            return new Vector3(X * other, Y * other, Z * other);
         }
 
         /// <summary>
@@ -208,9 +132,9 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 MultiplyToCurrent(double other)
         {
-            x *= other;
-            y *= other;
-            z *= other;
+            X *= other;
+            Y *= other;
+            Z *= other;
 
             return this;
         }
@@ -221,7 +145,7 @@ namespace MolecularDynamics.Model
         /// <param name="other">Скаляр.</param>
         public Vector3 Divide(double other)
         {
-            return new Vector3(x / other, y / other, z / other);
+            return new Vector3(X / other, Y / other, Z / other);
         }
 
         /// <summary>
@@ -230,9 +154,9 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 DivideToCurrent(double other)
         {
-            x /= other;
-            y /= other;
-            z /= other;
+            X /= other;
+            Y /= other;
+            Z /= other;
 
             return this;
         }

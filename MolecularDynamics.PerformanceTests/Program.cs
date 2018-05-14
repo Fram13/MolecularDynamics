@@ -9,17 +9,16 @@ namespace MolecularDynamics.PerformanceTests
         /// <summary>
         /// Измеряет время моделирования движения частиц.
         /// </summary>
-        /// <param name="rows">Количество строк сетки частиц.</param>
-        /// <param name="columns">Количество столбцов сетки частиц.</param>
         /// <param name="steps">Количество шагов интегрирования.</param>
-        /// <param name="threads">Количество потоков.</param>
         /// <returns></returns>
-        private static long TimeTest(int rows, int columns, int steps, int threads)
+        private static long TimeTest(int steps)
         {
-            var grid = ParticleGridGenerator.GenerateGrid((1, 1, 1), (5, 5, 5), 1, InteractionFunctions.GravitationalInteraction, 0.01);
-            var integrator = new ParticleTrajectoryIntegrator(grid, 0.00125);
-
             Stopwatch sw = new Stopwatch();
+
+            ParticleGrid grid = new ParticleGrid(spaceSize: (1, 1, 1), cellCount: (25, 25, 25), interactionRadius: 0.18, threads: 12);
+            grid.GenerateParticles(mass: 1, interactionFunction: InteractionFunctions.PseudoGravitationInteraction);
+            TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, step: 0.05);
+
             sw.Start();
 
             for (int i = 0; i < steps; i++)
@@ -28,33 +27,16 @@ namespace MolecularDynamics.PerformanceTests
             }
 
             sw.Stop();
+
             return sw.ElapsedMilliseconds;
         }
 
         static void Main(string[] args)
         {
-            int steps = 10;
+            int steps = 40;
 
-            long time1 = TimeTest(100, 10, steps, 1);
-            Console.WriteLine("1 thread");
+            long time1 = TimeTest(steps);
             Console.WriteLine($"Total: {time1} ms, per step: {(double)time1 / steps} ms");
-            Console.WriteLine();
-
-            long time2 = TimeTest(100, 10, steps, 2);
-            Console.WriteLine("2 threads");
-            Console.WriteLine($"Total: {time2} ms, per step: {(double)time2 / steps} ms");
-            Console.WriteLine();
-
-            long time3 = TimeTest(100, 10, steps, 4);
-            Console.WriteLine("4 threads");
-            Console.WriteLine($"Total: {time3} ms, per step: {(double)time3 / steps} ms");
-            Console.WriteLine();
-
-            long time4 = TimeTest(100, 10, steps, 8);
-            Console.WriteLine("8 threads");
-            Console.WriteLine($"Total: {time4} ms, per step: {(double)time4 / steps} ms");
-            Console.WriteLine();
-
             Console.ReadKey();
         }
     }

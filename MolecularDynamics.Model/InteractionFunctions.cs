@@ -15,8 +15,25 @@
         {
             Vector3 r = other.Position - current.Position;
             double n = r.Norm();
+
+            if (n < 0.1)
+            {
+                return (0, 0, 0);
+            }
+
             r.DivideToCurrent(n);
-            return r.MultiplyToCurrent(other.Mass / (n * n));
+            return r.MultiplyToCurrent(0.0001 * other.Mass / (n * n));
+        }
+
+        public static Vector3 PseudoGravitationInteraction(Particle current, Particle other)
+        {
+            Vector3 r = other.Position - current.Position;
+            double n = r.Norm();
+
+            r.DivideToCurrent(n);
+            //return r.MultiplyToCurrent(0.0001 * other.Mass / (n * n));
+
+            return (0, 0, 0);
         }
     }
 }
