@@ -72,41 +72,18 @@ namespace MolecularDynamics.Model
         /// <param name="cellIndex"></param>
         /// <param name="position">Положение частицы в пространстве.</param>
         /// <returns></returns>
-        public /*(*/Cell/*, Vector3)*/ GetContainingCell((int X, int Y, int Z) cellIndex, ref Vector3 position)
+        public Cell GetContainingCell((int X, int Y, int Z) cellIndex, ref Vector3 position)
         {
-            //(int X, int Y, int Z) containingCellIndex;
-
-            //containingCellIndex.X = (int)Math.Floor(position.X / CellSize.X) % CellCount.X;
-            //containingCellIndex.X += containingCellIndex.X < 0 ? CellCount.X : 0;
-
-            //containingCellIndex.Y = (int)Math.Floor(position.Y / CellSize.Y) % CellCount.Y;
-            //containingCellIndex.Y += containingCellIndex.Y < 0 ? CellCount.Y : 0;
-
-            //containingCellIndex.Z = (int)Math.Floor(position.Z / CellSize.Z) % CellCount.Z;
-            //containingCellIndex.Z += containingCellIndex.Z < 0 ? CellCount.Z : 0;
-
-            //(int X, int Y, int Z) changeOfIndex;
-            //changeOfIndex.X = containingCellIndex.X - cellIndex.X;
-            //changeOfIndex.Y = containingCellIndex.Y - cellIndex.Y;
-            //changeOfIndex.Z = containingCellIndex.Z - cellIndex.Z;
-
-            //Vector3 changeOfPosition = new Vector3(0.0, 0.0, 0.0);
-            //changeOfPosition.X += Math.Abs(changeOfIndex.X) == CellCount.X - 1 ? Math.Sign(changeOfIndex.X) * spaceSize.X : 0.0;
-            //changeOfPosition.Y += Math.Abs(changeOfIndex.Y) == CellCount.Y - 1 ? Math.Sign(changeOfIndex.Y) * spaceSize.Y : 0.0;
-            //changeOfPosition.Z += Math.Abs(changeOfIndex.Z) == CellCount.Z - 1 ? Math.Sign(changeOfIndex.Z) * spaceSize.Z : 0.0;
-
-            //return (cells[containingCellIndex.X, containingCellIndex.Y, containingCellIndex.Z], changeOfPosition);
-
             (int X, int Y, int Z) containingCellIndex;
 
-            position.X = position.X < 0.0 ? _spaceSize.X : position.X;
-            position.X = position.X > _spaceSize.X ? 0.0 : position.X;
+            position.X = position.X < 0.0 ? position.X + _spaceSize.X : position.X;
+            position.X = position.X > _spaceSize.X ? position.X - _spaceSize.X : position.X;
 
-            position.Y = position.Y < 0.0 ? _spaceSize.Y : position.Y;
-            position.Y = position.Y > _spaceSize.Y ? 0.0 : position.Y;
+            position.Y = position.Y < 0.0 ? position.Y + _spaceSize.Y : position.Y;
+            position.Y = position.Y > _spaceSize.Y ? position.Y - _spaceSize.Y : position.Y;
 
-            position.Z = position.Z < 0.0 ? _spaceSize.Z : position.Z;
-            position.Z = position.Z > _spaceSize.Z ? 0.0 : position.Z;
+            position.Z = position.Z < 0.0 ? position.Z + _spaceSize.Z : position.Z;
+            position.Z = position.Z > _spaceSize.Z ? position.Z - _spaceSize.Z : position.Z;
 
             containingCellIndex.X = (int)Math.Floor(position.X / CellSize.X) % (CellCount.X + 1);
             containingCellIndex.Y = (int)Math.Floor(position.Y / CellSize.Y) % (CellCount.Y + 1);
@@ -154,6 +131,18 @@ namespace MolecularDynamics.Model
         /// </summary>
         private void InitializeBoundaryCells()
         {
+            int ByModulo(int value, int modulo, ref bool overflow)
+            {
+                overflow = false;
+
+                if (value > modulo || value < 0)
+                {
+                    overflow = true;
+                }
+
+                return value > 0 ? value % modulo : (value % modulo) + modulo;
+            }
+
             double interactionRadius = Math.Sqrt(_interactionRadiusSquared);
             (int X, int Y, int Z) nearestCellCount;
             nearestCellCount.X = (int)Math.Ceiling(interactionRadius / CellSize.X);
@@ -162,15 +151,34 @@ namespace MolecularDynamics.Model
 
             ForEachCell((cell, indicies) =>
             {
-                for (int x = Math.Max(0, indicies.X - nearestCellCount.X); x < Math.Min(CellCount.X, indicies.X + nearestCellCount.X + 1); x++)
+                bool overflowX = false;
+                bool overflowY = false;
+                bool overflowZ = false;
+
+                for (int x = ByModulo(indicies.X - nearestCellCount.X, CellCount.X, ref overflowX), xCounter = 0; xCounter < 2 * nearestCellCount.X + 1; x = ByModulo(x + 1, CellCount.X, ref overflowX), xCounter++)
                 {
-                    for (int y = Math.Max(0, indicies.Y - nearestCellCount.Y); y < Math.Min(CellCount.Y, indicies.Y + nearestCellCount.Y + 1); y++)
+                    for (int y = ByModulo(indicies.Y - nearestCellCount.Y, CellCount.Y, ref overflowY), yCounter = 0; yCounter < 2 * nearestCellCount.Y + 1; y = ByModulo(y + 1, CellCount.Y, ref overflowY), yCounter++)
                     {
-                        for (int z = Math.Max(0, indicies.Z - nearestCellCount.Z); z < Math.Min(CellCount.Z, indicies.Z + nearestCellCount.Z + 1); z++)
+                        for (int z = ByModulo(indicies.Z - nearestCellCount.Z, CellCount.Z, ref overflowZ), zCounter = 0; zCounter < 2 * nearestCellCount.Z + 1; z = ByModulo(z + 1, CellCount.Z, ref overflowZ), zCounter++)
                         {
                             if (x != indicies.X || y != indicies.Y || z != indicies.Z)
                             {
                                 Vector3 distance = cell.Position - _cells[x, y, z].Position;
+
+                                if (overflowX)
+                                {
+                                    distance.X = _spaceSize.X - Math.Abs(distance.X);
+                                }
+
+                                if (overflowY)
+                                {
+                                    distance.Y = _spaceSize.Y - Math.Abs(distance.Y);
+                                }
+
+                                if (overflowZ)
+                                {
+                                    distance.Z = _spaceSize.Z - Math.Abs(distance.Z);
+                                }
 
                                 if (!(distance.NormSquared() > _interactionRadiusSquared))
                                 {
@@ -181,47 +189,29 @@ namespace MolecularDynamics.Model
                     }
                 }
             });
+
+            //ForEachCell((cell, indicies) =>
+            //{
+            //    for (int x = Math.Max(0, indicies.X - nearestCellCount.X); x < Math.Min(CellCount.X, indicies.X + nearestCellCount.X + 1); x++)
+            //    {
+            //        for (int y = Math.Max(0, indicies.Y - nearestCellCount.Y); y < Math.Min(CellCount.Y, indicies.Y + nearestCellCount.Y + 1); y++)
+            //        {
+            //            for (int z = Math.Max(0, indicies.Z - nearestCellCount.Z); z < Math.Min(CellCount.Z, indicies.Z + nearestCellCount.Z + 1); z++)
+            //            {
+            //                if (x != indicies.X || y != indicies.Y || z != indicies.Z)
+            //                {
+            //                    Vector3 distance = cell.Position - _cells[x, y, z].Position;
+
+            //                    if (!(distance.NormSquared() > _interactionRadiusSquared))
+            //                    {
+            //                        cell.BoundaryCells.Add(_cells[x, y, z]);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //});
         }
-
-        ///// <summary>
-        ///// Выполняет указанное действие для каждой ячейки сетки частиц.
-        ///// </summary>
-        ///// <param name="action">Действие для каждоЙ ячейки.</param>
-        //public void ForEachCell(Action<Cell> action)
-        //{
-        //    int perCore = CellCount.X / (_tasks.Length + 1);
-
-        //    for (int taskCounter = 1; taskCounter <= _tasks.Length; taskCounter++)
-        //    {
-        //        int counter = taskCounter;
-        //        _tasks[taskCounter - 1] = Task.Run(() =>
-        //        {
-        //            for (int i = counter * perCore; i < (counter + 1) * perCore; i++)
-        //            {
-        //                for (int j = 0; j < CellCount.Y; j++)
-        //                {
-        //                    for (int k = 0; k < CellCount.Z; k++)
-        //                    {
-        //                        action(_cells[i, j, k]);
-        //                    }
-        //                }
-        //            }
-        //        });
-        //    }
-
-        //    for (int i = 0; i < perCore; i++)
-        //    {
-        //        for (int j = 0; j < CellCount.Y; j++)
-        //        {
-        //            for (int k = 0; k < CellCount.Z; k++)
-        //            {
-        //                action(_cells[i, j, k]);
-        //            }
-        //        }
-        //    }
-
-        //    Task.WaitAll(_tasks);
-        //}
 
         /// <summary>
         /// Выполняет указанное действие для каждой ячейки сетки частиц.
@@ -262,24 +252,6 @@ namespace MolecularDynamics.Model
 
             Task.WaitAll(_tasks);
         }
-
-        ///// <summary>
-        ///// Выполняет указанное действие для каждой ячейки сетки частиц.
-        ///// </summary>
-        ///// <param name="action">Действие для каждоЙ ячейки.</param>
-        //public void ForEachCellSequentally(Action<ParticleGridCell, (int X, int Y, int Z)> action)
-        //{
-        //    for (int i = 0; i < CellCount.X; i++)
-        //    {
-        //        for (int j = 0; j < CellCount.Y; j++)
-        //        {
-        //            for (int k = 0; k < CellCount.Z; k++)
-        //            {
-        //                action(cells[i, j, k], (i, j, k));
-        //            }
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Представляет ячейку сетки частиц.
