@@ -41,6 +41,7 @@ namespace MolecularDynamics.Visualization
             RenderFrame += RenderFrameHandler;
             MouseMove += MouseMoveHandler;
             MouseWheel += MouseWheelHandler;
+            KeyDown += KeyDownHandler;
         }
         
         public override void Dispose()
@@ -254,6 +255,28 @@ namespace MolecularDynamics.Visualization
             if (e.Delta != 0)
             {
                 _modelView = _modelView * Matrix4.CreateScale(e.Delta > 0 ? 1.05f : 0.95f);
+            }
+        }
+
+        private void KeyDownHandler(Object sender, KeyboardKeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Left:
+                    _modelView = _modelView * Matrix4.CreateTranslation(-0.05f, 0.0f, 0.0f);
+                    break;
+
+                case Key.Right:
+                    _modelView = _modelView * Matrix4.CreateTranslation(0.05f, 0.0f, 0.0f);
+                    break;
+
+                case Key.Up:
+                    _modelView = _modelView * Matrix4.CreateTranslation(0.0f, 0.05f, 0.0f);
+                    break;
+
+                case Key.Down:
+                    _modelView = _modelView * Matrix4.CreateTranslation(0.0f, -0.05f, 0.0f);
+                    break;
             }
         }
         
