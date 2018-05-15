@@ -9,7 +9,7 @@ namespace MolecularDynamics.Visualization
     {
         static void Main(string[] args)
         {
-            ParticleGrid grid = new ParticleGrid((1, 1, 1), (5, 5, 5), 0.5, 4);
+            ParticleGrid grid = new ParticleGrid((1, 1, 1), (10, 10, 10), 0.5, 2);
             List<Particle> particles = grid.GenerateParticles(0.0001, InteractionFunctions.GravitationalInteraction);
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, 0.005);
 

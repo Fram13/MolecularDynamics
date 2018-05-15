@@ -15,7 +15,7 @@ namespace MolecularDynamics.PerformanceTests
         {
             Stopwatch sw = new Stopwatch();
 
-            ParticleGrid grid = new ParticleGrid(spaceSize: (1, 1, 1), cellCount: (25, 25, 25), interactionRadius: 0.18, threads: 1);
+            ParticleGrid grid = new ParticleGrid(spaceSize: (1, 1, 1), cellCount: (5, 5, 5), interactionRadius: 0.7, threads: 1);
             grid.GenerateParticles(mass: 1, interactionFunction: InteractionFunctions.PseudoGravitationInteraction);
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, step: 0.05);
 

@@ -131,86 +131,61 @@ namespace MolecularDynamics.Model
         /// </summary>
         private void InitializeBoundaryCells()
         {
-            int ByModulo(int value, int modulo, ref bool overflow)
+            int ByModulo(int value, int modulo)
             {
-                overflow = false;
-
-                if (value > modulo || value < 0)
+                if (modulo == 1)
                 {
-                    overflow = true;
+                    return 0;
                 }
 
-                return value > 0 ? value % modulo : (value % modulo) + modulo;
+                return value >= 0 ? value % modulo : (value % modulo) + modulo;
             }
 
             double interactionRadius = Math.Sqrt(_interactionRadiusSquared);
             (int X, int Y, int Z) nearestCellCount;
-            nearestCellCount.X = (int)Math.Ceiling(interactionRadius / CellSize.X);
-            nearestCellCount.Y = (int)Math.Ceiling(interactionRadius / CellSize.Y);
-            nearestCellCount.Z = (int)Math.Ceiling(interactionRadius / CellSize.Z);
+            nearestCellCount.X = (int)Math.Ceiling(interactionRadius / CellSize.X) - 1;
+            nearestCellCount.Y = (int)Math.Ceiling(interactionRadius / CellSize.Y) - 1;
+            nearestCellCount.Z = (int)Math.Ceiling(interactionRadius / CellSize.Z) - 1;
 
             ForEachCell((cell, indicies) =>
             {
-                bool overflowX = false;
-                bool overflowY = false;
-                bool overflowZ = false;
+                Vector3 nearestCellPosition;
 
-                for (int x = ByModulo(indicies.X - nearestCellCount.X, CellCount.X, ref overflowX), xCounter = 0; xCounter < 2 * nearestCellCount.X + 1; x = ByModulo(x + 1, CellCount.X, ref overflowX), xCounter++)
+                nearestCellPosition.X = cell.Position.X - nearestCellCount.X * CellSize.X;                              
+                int x = ByModulo(indicies.X - nearestCellCount.X, CellCount.X);
+
+                for (int xCounter = 0; xCounter < 2 * nearestCellCount.X + 1; xCounter++)
                 {
-                    for (int y = ByModulo(indicies.Y - nearestCellCount.Y, CellCount.Y, ref overflowY), yCounter = 0; yCounter < 2 * nearestCellCount.Y + 1; y = ByModulo(y + 1, CellCount.Y, ref overflowY), yCounter++)
+                    nearestCellPosition.Y = cell.Position.Y - nearestCellCount.Y * CellSize.Y;
+                    int y = ByModulo(indicies.Y - nearestCellCount.Y, CellCount.Y);
+
+                    for (int yCounter = 0; yCounter < 2 * nearestCellCount.Y + 1; yCounter++)
                     {
-                        for (int z = ByModulo(indicies.Z - nearestCellCount.Z, CellCount.Z, ref overflowZ), zCounter = 0; zCounter < 2 * nearestCellCount.Z + 1; z = ByModulo(z + 1, CellCount.Z, ref overflowZ), zCounter++)
+                        nearestCellPosition.Z = cell.Position.Z - nearestCellCount.Z * CellSize.Z;
+                        int z = ByModulo(indicies.Z - nearestCellCount.Z, CellCount.Z);
+
+                        for (int zCounter = 0; zCounter < 2 * nearestCellCount.Z + 1; zCounter++)
                         {
-                            if (x != indicies.X || y != indicies.Y || z != indicies.Z)
+                            if (indicies.X != x || indicies.Y != y || indicies.Z != z)
                             {
-                                Vector3 distance = cell.Position - _cells[x, y, z].Position;
-
-                                if (overflowX)
-                                {
-                                    distance.X = _spaceSize.X - Math.Abs(distance.X);
-                                }
-
-                                if (overflowY)
-                                {
-                                    distance.Y = _spaceSize.Y - Math.Abs(distance.Y);
-                                }
-
-                                if (overflowZ)
-                                {
-                                    distance.Z = _spaceSize.Z - Math.Abs(distance.Z);
-                                }
-
-                                if (!(distance.NormSquared() > _interactionRadiusSquared))
+                                if ((cell.Position - nearestCellPosition).NormSquared() < _interactionRadiusSquared)
                                 {
                                     cell.BoundaryCells.Add(_cells[x, y, z]);
                                 }
                             }
+
+                            nearestCellPosition.Z += CellSize.Z;
+                            z = ByModulo(z + 1, CellCount.Z);
                         }
+
+                        nearestCellPosition.Y += CellSize.Y;
+                        y = ByModulo(y + 1, CellCount.Y);
                     }
+
+                    nearestCellPosition.X += CellSize.X;
+                    x = ByModulo(x + 1, CellCount.X);
                 }
             });
-
-            //ForEachCell((cell, indicies) =>
-            //{
-            //    for (int x = Math.Max(0, indicies.X - nearestCellCount.X); x < Math.Min(CellCount.X, indicies.X + nearestCellCount.X + 1); x++)
-            //    {
-            //        for (int y = Math.Max(0, indicies.Y - nearestCellCount.Y); y < Math.Min(CellCount.Y, indicies.Y + nearestCellCount.Y + 1); y++)
-            //        {
-            //            for (int z = Math.Max(0, indicies.Z - nearestCellCount.Z); z < Math.Min(CellCount.Z, indicies.Z + nearestCellCount.Z + 1); z++)
-            //            {
-            //                if (x != indicies.X || y != indicies.Y || z != indicies.Z)
-            //                {
-            //                    Vector3 distance = cell.Position - _cells[x, y, z].Position;
-
-            //                    if (!(distance.NormSquared() > _interactionRadiusSquared))
-            //                    {
-            //                        cell.BoundaryCells.Add(_cells[x, y, z]);
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //});
         }
 
         /// <summary>
