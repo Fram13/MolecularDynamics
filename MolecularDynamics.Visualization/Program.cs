@@ -9,23 +9,25 @@ namespace MolecularDynamics.Visualization
     {
         static void Main(string[] args)
         {
-            ParticleGrid grid = new ParticleGrid((1, 1, 1), (10, 10, 10), 0.5, 2);
-            List<Particle> particles = grid.GenerateParticles(0.0001, InteractionFunctions.GravitationalInteraction);
-            TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, 0.005);
+            var tuple = ParticleGenerator.GenerateWolframGrid((20, 20, 20), 3);
+
+            var particles = tuple.Item2;
+
+            TrajectoryIntegrator integrator = new TrajectoryIntegrator(tuple.Item1, Constants.Step);
 
             float[] positions = new float[particles.Count * 3];
             float[] nextPositions = new float[particles.Count * 3];
 
             for (int i = 0; i < particles.Count; i++)
             {
-                positions[3 * i] = (float)particles[i].Position.X;
-                positions[3 * i + 1] = (float)particles[i].Position.Y;
-                positions[3 * i + 2] = (float)particles[i].Position.Z;
+                positions[3 * i] = (float)(particles[i].Position.X / 10);
+                positions[3 * i + 1] = (float)(particles[i].Position.Y / 10);
+                positions[3 * i + 2] = (float)(particles[i].Position.Z / 10);
             }
 
             Object syncObject = new Object();
             
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(positions, 0.05, 10, syncObject))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(positions, sphereRadius: 0.141, faces: 10, syncObject: syncObject))
             {
                 Task.Run(() =>
                 {
@@ -35,9 +37,9 @@ namespace MolecularDynamics.Visualization
 
                         for (int i = 0; i < particles.Count; i++)
                         {
-                            nextPositions[3 * i] = (float)particles[i].Position.X;
-                            nextPositions[3 * i + 1] = (float)particles[i].Position.Y;
-                            nextPositions[3 * i + 2] = (float)particles[i].Position.Z;
+                            nextPositions[3 * i] = (float)(particles[i].Position.X / 10);
+                            nextPositions[3 * i + 1] = (float)(particles[i].Position.Y / 10);
+                            nextPositions[3 * i + 2] = (float)(particles[i].Position.Z / 10);
                         }
 
                         lock (syncObject)

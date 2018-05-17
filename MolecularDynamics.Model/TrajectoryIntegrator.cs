@@ -36,7 +36,6 @@ namespace MolecularDynamics.Model
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];                    
-                    Func<Particle, Particle, Vector3> interactionFunction = particle.InteractionFunction;
                     ref Vector3 force = ref particle.GetForceByRef();
 
                     force.X = 0.0;
@@ -46,12 +45,12 @@ namespace MolecularDynamics.Model
                     //вычисление сил взаимодействия с частицами в текущей ячейке
                     for (int j = 0; j < i; j++)
                     {
-                        force.AddToCurrent(interactionFunction(particle, particles[j]));
+                        force.AddToCurrent(particle.PairForce(particles[j]));
                     }
 
                     for (int j = i + 1; j < particles.Count; j++)
                     {
-                        force.AddToCurrent(interactionFunction(particle, particles[j]));
+                        force.AddToCurrent(particle.PairForce(particles[j]));
                     }
 
                     //вычисление сил взаимодействия с частицами в соседних ячейках
@@ -61,7 +60,7 @@ namespace MolecularDynamics.Model
 
                         for (int k = 0; k < boundaryCellParticles.Count; k++)
                         {
-                            force.AddToCurrent(interactionFunction(particle, boundaryCellParticles[k]));
+                            force.AddToCurrent(particle.PairForce(boundaryCellParticles[k]));
                         }
                     }
                 }
@@ -77,9 +76,12 @@ namespace MolecularDynamics.Model
                     Particle particle = particles[i];
                     ref Vector3 velocity = ref particle.GetVelocityByRef();
                     ref Vector3 force = ref particle.GetForceByRef();
+                    ref Vector3 randomForce = ref particle.GetForceRandomByRef();
 
-                    force.MultiplyToCurrent(step / particle.Mass);
-                    velocity.AddToCurrent(force);
+                    randomForce.AddToCurrent(Constants.RandomForceLength * Constants.RandomNormalVector);
+
+                    force.AddToCurrent(randomForce).MultiplyToCurrent(step / particle.Mass);
+                    velocity.AddToCurrent(force).MultiplyToCurrent(1.0 - Constants.DissipationCoefficient * step);
 
                     ref Vector3 position = ref particle.GetPositionByRef();
                     position.AddToCurrent(velocity * step);
