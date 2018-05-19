@@ -25,14 +25,6 @@ namespace MolecularDynamics.Model
         public readonly Vector3 CellSize;
 
         /// <summary>
-        /// Возвращает ячейку сетки по указанным индексам.
-        /// </summary>
-        /// <param name="row">Номер строки.</param>
-        /// <param name="column">Номер столбца.</param>
-        /// <param name="layer">Номер слоя.</param>
-        public Cell this[int row, int column, int layer] => _cells[row, column, layer];
-
-        /// <summary>
         /// Создает новый экземпляр <see cref="ParticleGrid"/>.
         /// </summary>
         /// <param name="spaceSize">Размеры моделируемого пространства по трем измерениям.</param>
@@ -69,10 +61,9 @@ namespace MolecularDynamics.Model
         /// <summary>
         /// Возвращает ячейку, содержащую частицу с заданным положением в пространстве.
         /// </summary>
-        /// <param name="cellIndex"></param>
         /// <param name="position">Положение частицы в пространстве.</param>
         /// <returns></returns>
-        public Cell GetContainingCell((int X, int Y, int Z) cellIndex, ref Vector3 position)
+        public Cell GetContainingCell(ref Vector3 position)
         {
             (int X, int Y, int Z) containingCellIndex;
 
@@ -101,15 +92,14 @@ namespace MolecularDynamics.Model
         /// </summary>
         public void RedistributeParticles()
         {
-            ForEachCell((cell, index) =>
+            ForEachCell((cell, cellIndicies) =>
             {
                 IList<Particle> particles = cell.Particles;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];
-                    ref Vector3 position = ref particle.GetPositionByRef();
-                    var containingCell = GetContainingCell(index, ref position);
+                    var containingCell = GetContainingCell(ref particle.Position);
 
                     if (containingCell != cell)
                     {
@@ -147,26 +137,26 @@ namespace MolecularDynamics.Model
             nearestCellCount.Y = (int)Math.Ceiling(interactionRadius / CellSize.Y) - 1;
             nearestCellCount.Z = (int)Math.Ceiling(interactionRadius / CellSize.Z) - 1;
 
-            ForEachCell((cell, indicies) =>
+            ForEachCell((cell, cellIndicies) =>
             {
                 Vector3 nearestCellPosition;
 
                 nearestCellPosition.X = cell.Position.X - nearestCellCount.X * CellSize.X;                              
-                int x = ByModulo(indicies.X - nearestCellCount.X, CellCount.X);
+                int x = ByModulo(cellIndicies.X - nearestCellCount.X, CellCount.X);
 
                 for (int xCounter = 0; xCounter < 2 * nearestCellCount.X + 1; xCounter++)
                 {
                     nearestCellPosition.Y = cell.Position.Y - nearestCellCount.Y * CellSize.Y;
-                    int y = ByModulo(indicies.Y - nearestCellCount.Y, CellCount.Y);
+                    int y = ByModulo(cellIndicies.Y - nearestCellCount.Y, CellCount.Y);
 
                     for (int yCounter = 0; yCounter < 2 * nearestCellCount.Y + 1; yCounter++)
                     {
                         nearestCellPosition.Z = cell.Position.Z - nearestCellCount.Z * CellSize.Z;
-                        int z = ByModulo(indicies.Z - nearestCellCount.Z, CellCount.Z);
+                        int z = ByModulo(cellIndicies.Z - nearestCellCount.Z, CellCount.Z);
 
                         for (int zCounter = 0; zCounter < 2 * nearestCellCount.Z + 1; zCounter++)
                         {
-                            if (indicies.X != x || indicies.Y != y || indicies.Z != z)
+                            if (cellIndicies.X != x || cellIndicies.Y != y || cellIndicies.Z != z)
                             {
                                 if ((cell.Position - nearestCellPosition).NormSquared() < _interactionRadiusSquared)
                                 {
@@ -226,6 +216,15 @@ namespace MolecularDynamics.Model
             }
 
             Task.WaitAll(_tasks);
+        }
+
+        /// <summary>
+        /// Добавляет частицу в сетку.
+        /// </summary>
+        /// <param name="particle">Добавляемая частица.</param>
+        public void AddParticle(Particle particle)
+        {
+            GetContainingCell(ref particle.Position).Particles.Add(particle);
         }
 
         /// <summary>

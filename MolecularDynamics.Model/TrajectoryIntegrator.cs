@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MolecularDynamics.Model
 {
@@ -9,17 +8,21 @@ namespace MolecularDynamics.Model
     public partial class TrajectoryIntegrator
     {
         private ParticleGrid grid;
-        private double step;
+        private IntegrationParameters parameters;
+        private double velocityMultiplier;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
         /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
-        /// <param name="step">Шаг интегрирования.</param>
-        public TrajectoryIntegrator(ParticleGrid grid, double step)
+        /// <param name="parameters">Параметры интегрирования.</param>
+        public TrajectoryIntegrator(ParticleGrid grid, IntegrationParameters parameters)
         {
             this.grid = grid;
-            this.step = step;
+            this.parameters = parameters;
+
+            //velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
+            velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
         }
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace MolecularDynamics.Model
         public void NextStep()
         {
             //вычисление сил зваимодействия между каждой парой частиц
-            grid.ForEachCell((cell, indicies) =>
+            grid.ForEachCell((cell, cellIndicies) =>
             {
                 IList<Particle> particles = cell.Particles;
                 IList<ParticleGrid.Cell> boundaryCells = cell.BoundaryCells;
@@ -36,21 +39,20 @@ namespace MolecularDynamics.Model
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];                    
-                    ref Vector3 force = ref particle.GetForceByRef();
 
-                    force.X = 0.0;
-                    force.Y = 0.0;
-                    force.Z = 0.0;
+                    particle.Force.X = 0.0;
+                    particle.Force.Y = 0.0;
+                    particle.Force.Z = 0.0;
 
                     //вычисление сил взаимодействия с частицами в текущей ячейке
                     for (int j = 0; j < i; j++)
                     {
-                        force.AddToCurrent(particle.PairForce(particles[j]));
+                        particle.Force.AddToCurrent(PairForce(particle, particles[j]));
                     }
 
                     for (int j = i + 1; j < particles.Count; j++)
                     {
-                        force.AddToCurrent(particle.PairForce(particles[j]));
+                        particle.Force.AddToCurrent(PairForce(particle, particles[j]));
                     }
 
                     //вычисление сил взаимодействия с частицами в соседних ячейках
@@ -60,35 +62,39 @@ namespace MolecularDynamics.Model
 
                         for (int k = 0; k < boundaryCellParticles.Count; k++)
                         {
-                            force.AddToCurrent(particle.PairForce(boundaryCellParticles[k]));
+                            particle.Force.AddToCurrent(PairForce(particle, boundaryCellParticles[k]));
                         }
                     }
                 }
             });
 
             //интегрирование Верле
-            grid.ForEachCell((cell, indicies) =>
+            grid.ForEachCell((cell, cellIndicies) =>
             {
                 IList<Particle> particles = cell.Particles;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];
-                    ref Vector3 velocity = ref particle.GetVelocityByRef();
-                    ref Vector3 force = ref particle.GetForceByRef();
-                    ref Vector3 randomForce = ref particle.GetForceRandomByRef();
 
-                    randomForce.AddToCurrent(Constants.RandomForceLength * Constants.RandomNormalVector);
+                    particle.Force.MultiplyToCurrent(parameters.IntegrationStep / particle.Mass);
+                    particle.Velocity.AddToCurrent(particle.Force).MultiplyToCurrent(velocityMultiplier);
 
-                    force.AddToCurrent(randomForce).MultiplyToCurrent(step / particle.Mass);
-                    velocity.AddToCurrent(force).MultiplyToCurrent(1.0 - Constants.DissipationCoefficient * step);
-
-                    ref Vector3 position = ref particle.GetPositionByRef();
-                    position.AddToCurrent(velocity * step);
+                    particle.Position.AddToCurrent(particle.Velocity * parameters.IntegrationStep);
                 }
             });
 
             grid.RedistributeParticles();
+        }
+
+        private Vector3 PairForce(Particle p1, Particle p2)
+        {
+            Vector3 r = p2.Position - p1.Position;
+            double distance = r.Norm();
+            r.DivideToCurrent(distance);
+            r.MultiplyToCurrent(p1.PairForce(distance));
+
+            return r;
         }
     }
 }

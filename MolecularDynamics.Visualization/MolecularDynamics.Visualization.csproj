@@ -1,26 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\MolecularDynamics.Visualization.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Shaders\FragmentShader.glsl" />
+    <None Remove="Shaders\VertexShader.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\FragmentShader.glsl" />
+    <EmbeddedResource Include="Shaders\VertexShader.glsl" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTK.NETCore" Version="1.1.2749.6433" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\MolecularDynamics.Model\MolecularDynamics.Model.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Shaders\VertexShader.glsl">
-      <Link>Shaders\VertexShader</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Shaders\FragmentShader.glsl">
-      <Link>Shaders\FragmentShader</Link>
-    </EmbeddedResource>
-  </ItemGroup>
+
 </Project>

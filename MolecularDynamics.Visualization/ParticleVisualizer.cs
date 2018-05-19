@@ -5,13 +5,20 @@ using System.Reflection;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
+using MolecularDynamics.Model;
 
 namespace MolecularDynamics.Visualization
 {
+    /// <summary>
+    /// Представляет визуализатор частиц.
+    /// </summary>
     public class ParticleVisualizer : GameWindow 
     {
-        private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.VertexShader";
-        private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.FragmentShader";
+        #region Fields
+
+        private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.VertexShader.glsl";
+        private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.FragmentShader.glsl";
+        private const int Faces = 10;
 
         private int _shaderProgram;
         private int _arrayBuffer;
@@ -19,22 +26,43 @@ namespace MolecularDynamics.Visualization
         private int _positionBuffer;
         private int _indexBuffer;
 
-        private double _sphereRadius;
-        private int _faces;
+        private double _sphereRadius;        
         private int _totalVertices;
         private Matrix4 _modelView;
 
-        private Object _syncObject;
+        private Object _positionsSyncronizer;
+        private float[] _positions;
+        private float[] _nextPositions;
 
-        public float[] Positions { get; set; }
+        #endregion Fields
+
+        /// <summary>
+        /// Компоненты векторов следующих позиций частиц, нм.
+        /// </summary>
+        public float[] NextPositionsComponents => _nextPositions;
         
-        public ParticleVisualizer(float[] positions, double sphereRadius, int faces, Object syncObject) : base()
+        /// <summary>
+        /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
+        /// </summary>
+        /// <param name="particles">Список визуализируемых частиц.</param>
+        /// <param name="sphereRadius">Радиус частицы, нм.</param>
+        public ParticleVisualizer(List<Particle> particles, double sphereRadius) : base()
         {
-            Positions = positions;
+            _positions = new float[particles.Count * 3];
+            _nextPositions = new float[particles.Count * 3];
+
+            for (int i = 0; i < particles.Count; i++)
+            {
+                Particle particle = particles[i];
+
+                _positions[3 * i] = (float)(particle.Position.X / 10.0);
+                _positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
+                _positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
+            }
+
             _sphereRadius = sphereRadius;
-            _faces = faces;
             _modelView = Matrix4.Identity;
-            _syncObject = syncObject;
+            _positionsSyncronizer = new Object();
             
             Load += LoadHandler;
             Resize += ResizeHandler;
@@ -44,7 +72,24 @@ namespace MolecularDynamics.Visualization
             KeyDown += KeyDownHandler;
         }
         
-        public override void Dispose()
+        /// <summary>
+        /// Обменивает буферы компонент позиций частиц.
+        /// </summary>
+        public void SwapPositionsBuffers()
+        {
+            lock (_positionsSyncronizer)
+            {
+                float[] temp = _positions;
+                _positions = _nextPositions;
+                _nextPositions = temp;
+            }
+        }
+
+        /// <summary>
+        /// Освобождает неуправляемые ресурсы.
+        /// <paramref name="manual"/>True - если метод был вызван приложением, false - если метод был вызван финализирующим потоком.
+        /// </summary>
+        protected override void Dispose(bool manual)
         {
             GL.DeleteProgram(_shaderProgram);
             GL.DeleteVertexArray(_arrayBuffer);
@@ -52,7 +97,7 @@ namespace MolecularDynamics.Visualization
             GL.DeleteBuffer(_positionBuffer);
             GL.DeleteBuffer(_indexBuffer);
             
-            base.Dispose();
+            base.Dispose(manual);
         }
 
         #region Private methods
@@ -169,7 +214,7 @@ namespace MolecularDynamics.Visualization
             
             _shaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
             
-            Tuple<float[], int[]> sphere = GenerateSphere(_sphereRadius, _faces);
+            Tuple<float[], int[]> sphere = GenerateSphere(_sphereRadius, Faces);
             _totalVertices = sphere.Item2.Length;
 
             _arrayBuffer = GL.GenVertexArray();
@@ -219,14 +264,14 @@ namespace MolecularDynamics.Visualization
             
             GL.BindBuffer(BufferTarget.ArrayBuffer, _positionBuffer);
 
-            lock (_syncObject)
+            lock (_positionsSyncronizer)
             {
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * Positions.Length, Positions, BufferUsageHint.StreamDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * _positions.Length, _positions, BufferUsageHint.StreamDraw);
                 GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
                 GL.EnableVertexAttribArray(1);
                 GL.VertexAttribDivisor(1, 1);
 
-                GL.DrawElementsInstanced(PrimitiveType.Quads, _totalVertices, DrawElementsType.UnsignedInt, (IntPtr)0, Positions.Length / 3); 
+                GL.DrawElementsInstanced(PrimitiveType.Quads, _totalVertices, DrawElementsType.UnsignedInt, (IntPtr)0, _positions.Length / 3); 
             }
             
             GL.BindVertexArray(0);

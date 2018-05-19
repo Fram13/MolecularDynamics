@@ -1,53 +1,63 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using MolecularDynamics.Model;
-using System.Collections.Generic;
+using MolecularDynamics.Model.Atoms;
 
 namespace MolecularDynamics.Visualization
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static readonly IntegrationParameters Parameters = new IntegrationParameters()
         {
-            var tuple = ParticleGenerator.GenerateWolframGrid((20, 20, 20), 3);
+            IntegrationStep = 0.1,
+            DissipationCoefficient = 0.06 / 3.615,
+            Temperature = 200
+        };
 
-            var particles = tuple.Item2;
+        private static void Main(string[] args)
+        {
+            ParticleGrid grid = new ParticleGrid((80, 10, 10), (1, 1, 1), 0, 1);
+            List<Particle> particles = new List<Particle>();
 
-            TrajectoryIntegrator integrator = new TrajectoryIntegrator(tuple.Item1, Constants.Step);
-
-            float[] positions = new float[particles.Count * 3];
-            float[] nextPositions = new float[particles.Count * 3];
-
-            for (int i = 0; i < particles.Count; i++)
+            Particle p1 = new WolframAtom()
             {
-                positions[3 * i] = (float)(particles[i].Position.X / 10);
-                positions[3 * i + 1] = (float)(particles[i].Position.Y / 10);
-                positions[3 * i + 2] = (float)(particles[i].Position.Z / 10);
-            }
+                Position = (28.5, 0, 0)
+            };
 
-            Object syncObject = new Object();
-            
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(positions, sphereRadius: 0.141, faces: 10, syncObject: syncObject))
+            Particle p2 = new WolframAtom()
+            {
+                Position = (31, 0, 0)
+            };
+
+            grid.AddParticle(p1);
+            grid.AddParticle(p2);
+
+            particles.Add(p1);
+            particles.Add(p2);
+
+            TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
+
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, WolframAtom.Radius))
             {
                 Task.Run(() =>
                 {
                     while (true)
                     {
+                        Thread.Sleep(5);
+
                         integrator.NextStep();
+
+                        float[] nextPositions = particleVisualizer.NextPositionsComponents;
 
                         for (int i = 0; i < particles.Count; i++)
                         {
-                            nextPositions[3 * i] = (float)(particles[i].Position.X / 10);
-                            nextPositions[3 * i + 1] = (float)(particles[i].Position.Y / 10);
-                            nextPositions[3 * i + 2] = (float)(particles[i].Position.Z / 10);
+                            nextPositions[3 * i] = (float)(particles[i].Position.X / 10.0);
+                            nextPositions[3 * i + 1] = (float)(particles[i].Position.Y / 10.0);
+                            nextPositions[3 * i + 2] = (float)(particles[i].Position.Z / 10.0);
                         }
 
-                        lock (syncObject)
-                        {
-                            var temp = positions;
-                            positions = nextPositions;
-                            nextPositions = temp;
-                        }
+                        particleVisualizer.SwapPositionsBuffers();
                     }
                 });
 
