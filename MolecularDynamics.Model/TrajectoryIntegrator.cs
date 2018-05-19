@@ -21,8 +21,8 @@ namespace MolecularDynamics.Model
             this.grid = grid;
             this.parameters = parameters;
 
-            //velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
-            velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
+            velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
+            //velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
         }
 
         /// <summary>
