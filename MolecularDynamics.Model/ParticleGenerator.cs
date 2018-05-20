@@ -34,7 +34,7 @@ namespace MolecularDynamics.Model
 
                 if (rest == cellIndicies.X % 2 && rest == cellIndicies.Y % 2)
                 {
-                    Particle particle = new WolframAtom()
+                    Particle particle = new Wolfram()
                     {
                         Position = cell.Position
                     };

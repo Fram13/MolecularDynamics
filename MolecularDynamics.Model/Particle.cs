@@ -21,11 +21,6 @@
         public Vector3 Force;
 
         /// <summary>
-        /// Случайная сила, дествующая на частицу, а. е. м. * А / 1e-14 с ^ 2.
-        /// </summary>
-        public Vector3 RandomForce;
-
-        /// <summary>
         /// Масса частицы, а. е. м..
         /// </summary>
         public double Mass;

@@ -5,7 +5,7 @@ namespace MolecularDynamics.Model.Atoms
     /// <summary>
     /// Представляет атом вольфрама.
     /// </summary>
-    public class WolframAtom : Particle
+    public class Wolfram : Particle
     {
         /// <summary>
         /// Радиус атома, нм.
@@ -13,11 +13,16 @@ namespace MolecularDynamics.Model.Atoms
         public const double Radius = 0.141;
 
         /// <summary>
-        /// Создает новый экземпляр <see cref="WolframAtom"/>.
+        /// Масса атома, а. е. м..
         /// </summary>
-        public WolframAtom()
+        public const double AtomMass = 183.84;
+
+        /// <summary>
+        /// Создает новый экземпляр <see cref="Wolfram"/>.
+        /// </summary>
+        public Wolfram()
         {
-            Mass = 183.84; //а.е.м.
+            Mass = AtomMass;
         }
 
         /// <summary>

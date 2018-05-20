@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MolecularDynamics.Model
 {
@@ -10,6 +11,8 @@ namespace MolecularDynamics.Model
         private ParticleGrid grid;
         private IntegrationParameters parameters;
         private double velocityMultiplier;
+        private double randomForceLength;
+        private NormalDistribution generator;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
@@ -20,9 +23,11 @@ namespace MolecularDynamics.Model
         {
             this.grid = grid;
             this.parameters = parameters;
+            velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
+            randomForceLength = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
+                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep);
 
-            velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
-            //velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
+            generator = new NormalDistribution();
         }
 
         /// <summary>
@@ -77,7 +82,7 @@ namespace MolecularDynamics.Model
                 {
                     Particle particle = particles[i];
 
-                    particle.Force.MultiplyToCurrent(parameters.IntegrationStep / particle.Mass);
+                    particle.Force/*.AddToCurrent(RandomForce())*/.MultiplyToCurrent(parameters.IntegrationStep / particle.Mass);
                     particle.Velocity.AddToCurrent(particle.Force).MultiplyToCurrent(velocityMultiplier);
 
                     particle.Position.AddToCurrent(particle.Velocity * parameters.IntegrationStep);
@@ -94,6 +99,13 @@ namespace MolecularDynamics.Model
             r.DivideToCurrent(distance);
             r.MultiplyToCurrent(p1.PairForce(distance));
 
+            return r;
+        }
+
+        private Vector3 RandomForce()
+        {
+            Vector3 r = new Vector3(generator.Next(), generator.Next(), generator.Next());
+            r.NormalizeCurrent().MultiplyToCurrent(randomForceLength);
             return r;
         }
     }

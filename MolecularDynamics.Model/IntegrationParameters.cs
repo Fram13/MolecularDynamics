@@ -6,12 +6,7 @@
     public class IntegrationParameters
     {
         /// <summary>
-        /// Постоянная Больцмана, ?.
-        /// </summary>
-        public const double BoltzmannConstant = 8.617332478e-5;
-
-        /// <summary>
-        /// Шаг интегрирования, 1е-14 с
+        /// Шаг интегрирования, 1е-14 с.
         /// </summary>
         public double IntegrationStep;
 
@@ -24,5 +19,10 @@
         /// Коэффициент диссипации, ?.
         /// </summary>
         public double DissipationCoefficient;
+
+        /// <summary>
+        /// Масса частицы, а. е. м..
+        /// </summary>
+        public double ParticleMass;
     }
 }
