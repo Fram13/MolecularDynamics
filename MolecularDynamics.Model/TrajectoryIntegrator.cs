@@ -25,7 +25,7 @@ namespace MolecularDynamics.Model
             this.parameters = parameters;
             velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
             randomForceLength = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
-                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep);
+                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep) / 10000;
 
             generator = new NormalDistribution();
         }
@@ -38,6 +38,11 @@ namespace MolecularDynamics.Model
             //вычисление сил зваимодействия между каждой парой частиц
             grid.ForEachCell((cell, cellIndicies) =>
             {
+                if (cellIndicies.Y < parameters.StaticCellLayerCount)
+                {
+                    return;
+                }
+
                 IList<Particle> particles = cell.Particles;
                 IList<ParticleGrid.Cell> boundaryCells = cell.BoundaryCells;
 
@@ -76,6 +81,11 @@ namespace MolecularDynamics.Model
             //интегрирование Верле
             grid.ForEachCell((cell, cellIndicies) =>
             {
+                if (cellIndicies.Y < parameters.StaticCellLayerCount)
+                {
+                    return;
+                }
+
                 IList<Particle> particles = cell.Particles;
 
                 for (int i = 0; i < particles.Count; i++)
@@ -84,7 +94,6 @@ namespace MolecularDynamics.Model
 
                     particle.Force/*.AddToCurrent(RandomForce())*/.MultiplyToCurrent(parameters.IntegrationStep / particle.Mass);
                     particle.Velocity.AddToCurrent(particle.Force).MultiplyToCurrent(velocityMultiplier);
-
                     particle.Position.AddToCurrent(particle.Velocity * parameters.IntegrationStep);
                 }
             });
@@ -95,6 +104,11 @@ namespace MolecularDynamics.Model
         private Vector3 PairForce(Particle p1, Particle p2)
         {
             Vector3 r = p2.Position - p1.Position;
+
+            r.X = Math.Abs(r.X) > parameters.SpaceSize.X / 2.0 ? r.X - Math.Sign(r.X) * parameters.SpaceSize.X : r.X;
+            r.Y = Math.Abs(r.Y) > parameters.SpaceSize.Y / 2.0 ? r.Y - Math.Sign(r.Y) * parameters.SpaceSize.Y : r.Y;
+            r.Z = Math.Abs(r.Z) > parameters.SpaceSize.Z / 2.0 ? r.Z - Math.Sign(r.Z) * parameters.SpaceSize.Z : r.Z;
+
             double distance = r.Norm();
             r.DivideToCurrent(distance);
             r.MultiplyToCurrent(p1.PairForce(distance));
@@ -105,7 +119,7 @@ namespace MolecularDynamics.Model
         private Vector3 RandomForce()
         {
             Vector3 r = new Vector3(generator.Next(), generator.Next(), generator.Next());
-            r.NormalizeCurrent().MultiplyToCurrent(randomForceLength);
+            r.MultiplyToCurrent(randomForceLength);
             return r;
         }
     }

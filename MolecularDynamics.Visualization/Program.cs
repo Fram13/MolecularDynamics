@@ -12,13 +12,18 @@ namespace MolecularDynamics.Visualization
         {
             IntegrationStep = 0.1,
             DissipationCoefficient = 0.06 / 3.615,
-            Temperature = 200,
-            ParticleMass = Wolfram.AtomMass
+            Temperature = 100,
+            ParticleMass = Wolfram.AtomMass,
+            StaticCellLayerCount = 2,
+            CellSize = (3.15, 3.15, 3.15),
+            CellCount = (5, 10, 5),
+            SpaceSize = (15.75, 31.5, 15.75)
         };
 
         private static void Main(string[] args)
-        {
-            var (grid, particles) = ParticleGenerator.GenerateWolframGrid((32, 32, 32), 13, 4);
+        { 
+            var (grid, particles) = ParticleGenerator.GenerateWolframGrid(Parameters, 4, 1);
+
             //ParticleGrid grid = new ParticleGrid((20, 20, 20), (1, 1, 1), 0, 1);
             //List<Particle> particles = new List<Particle>();
 
@@ -39,28 +44,8 @@ namespace MolecularDynamics.Visualization
 
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
 
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, Wolfram.Radius))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Wolfram.Radius))
             {
-                Task.Run(() =>
-                {
-                    while (true)
-                    {
-                        //Thread.Sleep(50);
-                        integrator.NextStep();
-
-                        float[] nextPositions = particleVisualizer.NextPositionsComponents;
-
-                        for (int i = 0; i < particles.Count; i++)
-                        {
-                            nextPositions[3 * i] = (float)(particles[i].Position.X / 10.0);
-                            nextPositions[3 * i + 1] = (float)(particles[i].Position.Y / 10.0);
-                            nextPositions[3 * i + 2] = (float)(particles[i].Position.Z / 10.0);
-                        }
-
-                        particleVisualizer.SwapPositionsBuffers();
-                    }
-                });
-
                 particleVisualizer.Run(30);
             }
         }

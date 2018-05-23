@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using MolecularDynamics.Model;
+using System.Diagnostics;
 
 namespace MolecularDynamics.Visualization
 {
@@ -34,20 +37,22 @@ namespace MolecularDynamics.Visualization
         private float[] _positions;
         private float[] _nextPositions;
 
-        #endregion Fields
+        private List<Particle> _particles;
+        private TrajectoryIntegrator _integrator;
+        private CancellationTokenSource _cts;
 
-        /// <summary>
-        /// Компоненты векторов следующих позиций частиц, нм.
-        /// </summary>
-        public float[] NextPositionsComponents => _nextPositions;
+        #endregion Fields
         
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
         /// </summary>
         /// <param name="particles">Список визуализируемых частиц.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
-        public ParticleVisualizer(List<Particle> particles, double sphereRadius) : base()
+        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, double sphereRadius) : base()
         {
+            _particles = particles;
+            _integrator = integrator;
+
             _positions = new float[particles.Count * 3];
             _nextPositions = new float[particles.Count * 3];
 
@@ -70,19 +75,6 @@ namespace MolecularDynamics.Visualization
             MouseMove += MouseMoveHandler;
             MouseWheel += MouseWheelHandler;
             KeyDown += KeyDownHandler;
-        }
-        
-        /// <summary>
-        /// Обменивает буферы компонент позиций частиц.
-        /// </summary>
-        public void SwapPositionsBuffers()
-        {
-            lock (_positionsSyncronizer)
-            {
-                float[] temp = _positions;
-                _positions = _nextPositions;
-                _nextPositions = temp;
-            }
         }
 
         /// <summary>
@@ -197,9 +189,67 @@ namespace MolecularDynamics.Visualization
 
             return Tuple.Create(verticesComponents, indicies.ToArray());
         }
-        
+
+        /// <summary>
+        /// Обменивает буферы компонент позиций частиц.
+        /// </summary>
+        private void SwapPositionsBuffers()
+        {
+            lock (_positionsSyncronizer)
+            {
+                float[] temp = _positions;
+                _positions = _nextPositions;
+                _nextPositions = temp;
+            }
+        }
+
+        private void Integrate(CancellationToken ct)
+        {
+            //int counter = 0;
+            //int steps = 50;
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
+
+            while (!ct.IsCancellationRequested)
+            {
+                //Thread.Sleep(50);
+                _integrator.NextStep();
+
+                for (int i = 0; i < _particles.Count; i++)
+                {
+                    _nextPositions[3 * i] = (float)(_particles[i].Position.X / 10.0);
+                    _nextPositions[3 * i + 1] = (float)(_particles[i].Position.Y / 10.0);
+                    _nextPositions[3 * i + 2] = (float)(_particles[i].Position.Z / 10.0);
+                }
+
+                SwapPositionsBuffers();
+
+                //if (counter < steps)
+                //{
+                //    counter++;
+                //}
+                //else
+                //{
+                //    sw.Stop();
+                //    Console.WriteLine($"{steps} steps in {sw.ElapsedMilliseconds} ms; {sw.ElapsedMilliseconds / 20} per step");
+                //    counter = 0;
+                //    sw.Reset();
+                //    sw.Start();
+                //}
+            }
+        }
+
+        private void ShowStat(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                Thread.Sleep(5000);
+                Console.WriteLine(_particles.Temperature());
+            }
+        }
+
         #endregion Private methods
-        
+
         #region Event handlers
 
         private void LoadHandler(Object sender, EventArgs e)
@@ -321,6 +371,19 @@ namespace MolecularDynamics.Visualization
 
                 case Key.Down:
                     _modelView = _modelView * Matrix4.CreateTranslation(0.0f, -0.05f, 0.0f);
+                    break;
+
+                case Key.Space:
+                    if (_cts == null || _cts.IsCancellationRequested)
+                    {
+                        _cts = new CancellationTokenSource();
+                        Task.Run(() => Integrate(_cts.Token));
+                        Task.Run(() => ShowStat(_cts.Token));
+                    }
+                    else
+                    {
+                        _cts.Cancel();
+                    }
                     break;
             }
         }
