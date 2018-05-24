@@ -8,7 +8,6 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using MolecularDynamics.Model;
-using System.Diagnostics;
 
 namespace MolecularDynamics.Visualization
 {
@@ -47,8 +46,9 @@ namespace MolecularDynamics.Visualization
         /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
         /// </summary>
         /// <param name="particles">Список визуализируемых частиц.</param>
+        /// <param name="integrator">Интегратор траекторий движения частиц.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
-        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, double sphereRadius) : base()
+        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, double sphereRadius)
         {
             _particles = particles;
             _integrator = integrator;
@@ -205,14 +205,8 @@ namespace MolecularDynamics.Visualization
 
         private void Integrate(CancellationToken ct)
         {
-            //int counter = 0;
-            //int steps = 50;
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
-
             while (!ct.IsCancellationRequested)
             {
-                //Thread.Sleep(50);
                 _integrator.NextStep();
 
                 for (int i = 0; i < _particles.Count; i++)
@@ -223,23 +217,10 @@ namespace MolecularDynamics.Visualization
                 }
 
                 SwapPositionsBuffers();
-
-                //if (counter < steps)
-                //{
-                //    counter++;
-                //}
-                //else
-                //{
-                //    sw.Stop();
-                //    Console.WriteLine($"{steps} steps in {sw.ElapsedMilliseconds} ms; {sw.ElapsedMilliseconds / 20} per step");
-                //    counter = 0;
-                //    sw.Reset();
-                //    sw.Start();
-                //}
             }
         }
 
-        private void ShowStat(CancellationToken ct)
+        private void ShowStatistics(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
@@ -378,7 +359,7 @@ namespace MolecularDynamics.Visualization
                     {
                         _cts = new CancellationTokenSource();
                         Task.Run(() => Integrate(_cts.Token));
-                        Task.Run(() => ShowStat(_cts.Token));
+                        Task.Run(() => ShowStatistics(_cts.Token));
                     }
                     else
                     {
