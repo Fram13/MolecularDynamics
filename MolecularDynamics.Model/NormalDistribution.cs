@@ -15,7 +15,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         public double Next()
         {
-            double s = 1.0;
+            double s;
             double v1, v2;
 
             lock (_syncObject)

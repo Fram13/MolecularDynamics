@@ -74,23 +74,6 @@ namespace MolecularDynamics.Model
         }
 
         /// <summary>
-        /// Вычисляет орт вектора.
-        /// </summary>
-        public Vector3 Normalize()
-        {
-            return Divide(Norm());
-        }
-
-        /// <summary>
-        /// Нормализует текущий вектор.
-        /// </summary>
-        public Vector3 NormalizeCurrent()
-        {
-            DivideToCurrent(Norm());
-            return this;
-        }
-
-        /// <summary>
         /// Выполняет сложение векторов.
         /// </summary>
         /// <param name="other">Правый вектор.</param>

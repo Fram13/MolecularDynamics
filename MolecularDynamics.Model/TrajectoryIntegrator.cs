@@ -6,10 +6,10 @@ namespace MolecularDynamics.Model
     /// <summary>
     /// Представляет интегратор уравнений движения частиц.
     /// </summary>
-    public partial class TrajectoryIntegrator
+    public class TrajectoryIntegrator
     {
         private ParticleGrid grid;
-        private IntegrationParameters parameters;
+        private SimulationParameters parameters;
         private double velocityMultiplier;
         private double randomForceLength;
         private NormalDistribution generator;
@@ -19,7 +19,7 @@ namespace MolecularDynamics.Model
         /// </summary>
         /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
         /// <param name="parameters">Параметры интегрирования.</param>
-        public TrajectoryIntegrator(ParticleGrid grid, IntegrationParameters parameters)
+        public TrajectoryIntegrator(ParticleGrid grid, SimulationParameters parameters)
         {
             this.grid = grid;
             this.parameters = parameters;

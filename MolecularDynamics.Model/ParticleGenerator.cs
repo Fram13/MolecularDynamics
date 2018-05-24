@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MolecularDynamics.Model.Atoms;
 
 namespace MolecularDynamics.Model
@@ -12,22 +11,23 @@ namespace MolecularDynamics.Model
         /// <summary>
         /// Создает сетку и заполняет ее атомами вольфрама, образующими ОЦК решетку.
         /// </summary>
-        /// <param name="spaceSize">Размер пространства моделирования.</param>
-        /// <param name="interactionRadius">Радиус взаимодействия ячеек.</param>
-        /// <param name="threads">Количество потоков вычислений.</param>
+        /// <param name="parameters">Параметры моделирования частиц.</param>
         /// <returns></returns>
-        public static (ParticleGrid, List<Particle>) GenerateWolframGrid(IntegrationParameters parameters, double interactionRadius, int threads)
+        public static (ParticleGrid, List<Particle>) GenerateWolframGrid(SimulationParameters parameters)
         {
             double delta = parameters.CellSize.X * 0.25;
-            int emptyLayerCount = parameters.CellCount.Y / 2;
 
-            ParticleGrid grid = new ParticleGrid(parameters.SpaceSize, parameters.CellCount, parameters.CellSize, interactionRadius, threads);
+            ParticleGrid grid = new ParticleGrid(parameters.SpaceSize,
+                                                 parameters.CellCount,
+                                                 parameters.CellSize, 
+                                                 parameters.InteractionRadius, 
+                                                 parameters.Threads);
+            
             List<Particle> particles = new List<Particle>();
-            Object syncObject = new Object();
 
             grid.ForEachCell((cell, cellIndicies) =>
             {
-                if (cellIndicies.Y >= emptyLayerCount)
+                if (cellIndicies.Y >= parameters.CellLayerCount)
                 {
                     return;
                 }

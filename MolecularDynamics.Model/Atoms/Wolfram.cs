@@ -31,13 +31,14 @@ namespace MolecularDynamics.Model.Atoms
         /// <param name="distance">Расстояние между частицами, А.</param>
         public override double PairForce(double distance)
         {
-            double force = 0;
-
             if (distance <= 1.72)
             {
                 throw new ArgumentOutOfRangeException("Выход за пределы интервала");
             }
-            else if (distance < 2.53139225)
+            
+            double force = 0;
+            
+            if (distance < 2.53139225)
             {
                 force = -4.071 * 1.435 * Math.Exp(-4.071 * (distance - 2.531392));
             }

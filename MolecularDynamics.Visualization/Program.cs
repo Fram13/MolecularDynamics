@@ -8,21 +8,21 @@ namespace MolecularDynamics.Visualization
 {
     internal class Program
     {
-        private static readonly IntegrationParameters Parameters = new IntegrationParameters()
+        private static readonly SimulationParameters Parameters = new SimulationParameters(cellSize: (3.15, 3.15, 3.15), cellCount: (5, 10, 5))
         {
             IntegrationStep = 0.1,
             DissipationCoefficient = 0.06 / 3.615,
             Temperature = 100,
             ParticleMass = Wolfram.AtomMass,
+            CellLayerCount = 5,
             StaticCellLayerCount = 2,
-            CellSize = (3.15, 3.15, 3.15),
-            CellCount = (5, 10, 5),
-            SpaceSize = (15.75, 31.5, 15.75)
+            InteractionRadius = 4,
+            Threads = 1
         };
 
         private static void Main(string[] args)
         { 
-            var (grid, particles) = ParticleGenerator.GenerateWolframGrid(Parameters, 4, 1);
+            var (grid, particles) = ParticleGenerator.GenerateWolframGrid(Parameters);
 
             //ParticleGrid grid = new ParticleGrid((20, 20, 20), (1, 1, 1), 0, 1);
             //List<Particle> particles = new List<Particle>();
