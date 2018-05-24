@@ -25,7 +25,7 @@ namespace MolecularDynamics.Model
             this.parameters = parameters;
             velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
             randomForceLength = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
-                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep) / 10000;
+                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep);
 
             generator = new NormalDistribution();
         }
@@ -92,7 +92,7 @@ namespace MolecularDynamics.Model
                 {
                     Particle particle = particles[i];
 
-                    particle.Force/*.AddToCurrent(RandomForce())*/.MultiplyToCurrent(parameters.IntegrationStep / particle.Mass);
+                    particle.Force/*.AddToCurrent(RandomForce())*/.DivideToCurrent(particle.Mass).MultiplyToCurrent(parameters.IntegrationStep);
                     particle.Velocity.AddToCurrent(particle.Force).MultiplyToCurrent(velocityMultiplier);
                     particle.Position.AddToCurrent(particle.Velocity * parameters.IntegrationStep);
                 }

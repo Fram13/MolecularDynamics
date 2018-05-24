@@ -21,7 +21,7 @@ namespace MolecularDynamics.Visualization
         };
 
         private static void Main(string[] args)
-        { 
+        {
             var (grid, particles) = ParticleGenerator.GenerateWolframGrid(Parameters);
 
             //ParticleGrid grid = new ParticleGrid((20, 20, 20), (1, 1, 1), 0, 1);

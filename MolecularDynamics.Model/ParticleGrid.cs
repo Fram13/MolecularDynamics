@@ -58,21 +58,17 @@ namespace MolecularDynamics.Model
             (int X, int Y, int Z) containingCellIndex;
 
             position.X = position.X < 0.0 ? position.X + _spaceSize.X : position.X;
-            position.X = position.X > _spaceSize.X ? position.X - _spaceSize.X : position.X;
+            position.X = position.X >= _spaceSize.X ? position.X - _spaceSize.X : position.X;
 
             position.Y = position.Y < 0.0 ? position.Y + _spaceSize.Y : position.Y;
-            position.Y = position.Y > _spaceSize.Y ? position.Y - _spaceSize.Y : position.Y;
+            position.Y = position.Y >= _spaceSize.Y ? position.Y - _spaceSize.Y : position.Y;
 
             position.Z = position.Z < 0.0 ? position.Z + _spaceSize.Z : position.Z;
-            position.Z = position.Z > _spaceSize.Z ? position.Z - _spaceSize.Z : position.Z;
+            position.Z = position.Z >= _spaceSize.Z ? position.Z - _spaceSize.Z : position.Z;
 
-            containingCellIndex.X = (int)Math.Floor(position.X / _cellSize.X);// % (CellCount.X + 1);
-            containingCellIndex.Y = (int)Math.Floor(position.Y / _cellSize.Y);// % (CellCount.Y + 1);
-            containingCellIndex.Z = (int)Math.Floor(position.Z / _cellSize.Z);// % (CellCount.Z + 1);
-
-            //containingCellIndex.X = containingCellIndex.X == CellCount.X ? containingCellIndex.X - 1 : containingCellIndex.X;
-            //containingCellIndex.Y = containingCellIndex.Y == CellCount.Y ? containingCellIndex.Y - 1 : containingCellIndex.Y;
-            //containingCellIndex.Z = containingCellIndex.Z == CellCount.Z ? containingCellIndex.Z - 1 : containingCellIndex.Z;
+            containingCellIndex.X = (int)Math.Floor(position.X / _cellSize.X);
+            containingCellIndex.Y = (int)Math.Floor(position.Y / _cellSize.Y);
+            containingCellIndex.Z = (int)Math.Floor(position.Z / _cellSize.Z);
 
             return _cells[containingCellIndex.X, containingCellIndex.Y, containingCellIndex.Z];
         }
