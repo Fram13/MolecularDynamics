@@ -18,6 +18,11 @@ namespace MolecularDynamics.Model.Atoms
         public const double AtomMass = 183.84;
 
         /// <summary>
+        /// Размер ячейки ОЦК решетки, А.
+        /// </summary>
+        public const double GridConstant = 3.15;
+
+        /// <summary>
         /// Создает новый экземпляр <see cref="Wolfram"/>.
         /// </summary>
         public Wolfram()
@@ -36,18 +41,17 @@ namespace MolecularDynamics.Model.Atoms
                 throw new ArgumentOutOfRangeException("Выход за пределы интервала");
             }
             
-            double force = 0;
-            
             if (distance < 2.53139225)
             {
-                force = -4.071 * 1.435 * Math.Exp(-4.071 * (distance - 2.531392));
-            }
-            else if (distance < 3.81445743)
-            {
-                force = -1.26599 * 4 * Math.Pow(distance - 3.45503, 3) - 3.0083 * 3 * Math.Pow(distance - 3.45503, 2) + 1.40109;
+                return -4.071 * 1.435 * Math.Exp(-4.071 * (distance - 2.531392));
             }
 
-            return force;
+            if (distance < 3.81445743)
+            {
+                return -1.26599 * 4 * Math.Pow(distance - 3.45503, 3) - 3.0083 * 3 * Math.Pow(distance - 3.45503, 2) + 1.40109;
+            }
+
+            return 0.0;
         }
     }
 }

@@ -18,18 +18,27 @@ namespace MolecularDynamics.Visualization
     {
         #region Fields
 
-        private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.VertexShader.glsl";
-        private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.FragmentShader.glsl";
+        private const string ParticleVertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.ParticleVertexShader.glsl";
+        private const string ParticleFragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.ParticleFragmentShader.glsl";
+        private const string SpaceEdgeVertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.SpaceEdgeVertexShader.glsl";
+        private const string SpaceEdgeFragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.SpaceEdgeFragmentShader.glsl";
         private const int Faces = 10;
 
-        private int _shaderProgram;
-        private int _arrayBuffer;
-        private int _vertexBuffer;
+        private int _particleShaderProgram;
+        private int _particleArrayBuffer;
+        private int _particleVertexBuffer;
         private int _positionBuffer;
-        private int _indexBuffer;
+        private int _particleIndexBuffer;
+
+        private int _spaceEdgeShaderProgram;
+        private int _spaceEdgeArrayBuffer;
+        private int _spaceEdgeVertexBuffer;
+        private int _spaceEdgeIndexBuffer;
+        private (float X, float Y, float Z) _spaceSize;
+        private int _spaceEdgeTotalVertices;
 
         private double _sphereRadius;        
-        private int _totalVertices;
+        private int _particleTotalVertices;
         private Matrix4 _modelView;
 
         private Object _positionsSyncronizer;
@@ -48,10 +57,13 @@ namespace MolecularDynamics.Visualization
         /// <param name="particles">Список визуализируемых частиц.</param>
         /// <param name="integrator">Интегратор траекторий движения частиц.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
-        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, double sphereRadius)
+        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, Model.Vector3 spaceSize, double sphereRadius)
         {
             _particles = particles;
             _integrator = integrator;
+            _spaceSize.X = (float)spaceSize.X;
+            _spaceSize.Y = (float)spaceSize.Y;
+            _spaceSize.Z = (float)spaceSize.Z;
 
             _positions = new float[particles.Count * 3];
             _nextPositions = new float[particles.Count * 3];
@@ -66,7 +78,7 @@ namespace MolecularDynamics.Visualization
             }
 
             _sphereRadius = sphereRadius;
-            _modelView = Matrix4.Identity;
+            _modelView = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));
             _positionsSyncronizer = new Object();
             
             Load += LoadHandler;
@@ -83,12 +95,17 @@ namespace MolecularDynamics.Visualization
         /// </summary>
         protected override void Dispose(bool manual)
         {
-            GL.DeleteProgram(_shaderProgram);
-            GL.DeleteVertexArray(_arrayBuffer);
-            GL.DeleteBuffer(_vertexBuffer);
+            GL.DeleteProgram(_particleShaderProgram);
+            GL.DeleteVertexArray(_particleArrayBuffer);
+            GL.DeleteBuffer(_particleVertexBuffer);
             GL.DeleteBuffer(_positionBuffer);
-            GL.DeleteBuffer(_indexBuffer);
-            
+            GL.DeleteBuffer(_particleIndexBuffer);
+
+            GL.DeleteProgram(_spaceEdgeShaderProgram);
+            GL.DeleteVertexArray(_spaceEdgeArrayBuffer);
+            GL.DeleteBuffer(_spaceEdgeVertexBuffer);
+            GL.DeleteBuffer(_spaceEdgeIndexBuffer);
+
             base.Dispose(manual);
         }
 
@@ -229,6 +246,115 @@ namespace MolecularDynamics.Visualization
             }
         }
 
+        private void InitializeParticleRendering()
+        {
+            Tuple<float[], int[]> sphere = GenerateSphere(_sphereRadius, Faces);
+            _particleTotalVertices = sphere.Item2.Length;
+
+            //Создание и заполнение буферов для отрисовки частиц
+            string vertexShaderSource = GetEmbeddedResource(ParticleVertexShaderResourceName);
+            string fragmentShaderSource = GetEmbeddedResource(ParticleFragmentShaderResourceName);
+            _particleShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
+
+            _particleArrayBuffer = GL.GenVertexArray();
+            _positionBuffer = GL.GenBuffer();
+
+            GL.BindVertexArray(_particleArrayBuffer);
+
+            //Копирование в память ГП данных о вершинах (вектора вершин и нормалей совпадают)
+            _particleVertexBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _particleVertexBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * sphere.Item1.Length, sphere.Item1, BufferUsageHint.StaticDraw);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+
+            //Копирование в память ГП данных о порядке отрисовки вершин
+            _particleIndexBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _particleIndexBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, sizeof(int) * sphere.Item2.Length, sphere.Item2, BufferUsageHint.StaticDraw);
+        }
+
+        private void InitializeSpaceEdgeRendering()
+        {
+            float[] vertices = new float[]
+            {
+                0.0f, 0.0f, 0.0f,
+                _spaceSize.X, 0.0f, 0.0f,
+                _spaceSize.X, _spaceSize.Y, 0.0f,
+                0.0f, _spaceSize.Y, 0.0f,
+                0.0f, 0.0f, _spaceSize.Z,
+                _spaceSize.X, 0.0f, _spaceSize.Z,
+                _spaceSize.X, _spaceSize.Y, _spaceSize.Z,
+                0.0f, _spaceSize.Y, _spaceSize.Z,
+            };
+
+            int[] indicies = new int[]
+            {
+                0, 1, 3, 2, 4, 5, 7, 6,
+                0, 3, 1, 2, 4, 7, 5, 6,
+                0, 4, 1, 5, 3, 7, 2, 6
+            };
+
+            _spaceEdgeTotalVertices = indicies.Length;
+
+            //Создание и заполнение буферов для отрисовки границ пространства
+            string vertexShaderSource = GetEmbeddedResource(SpaceEdgeVertexShaderResourceName);
+            string fragmentShaderSource = GetEmbeddedResource(SpaceEdgeFragmentShaderResourceName);
+            _spaceEdgeShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
+
+            _spaceEdgeArrayBuffer = GL.GenVertexArray();
+            GL.BindVertexArray(_spaceEdgeArrayBuffer);
+
+            //Копирование в память ГП данных о вершинах
+            _spaceEdgeVertexBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _spaceEdgeVertexBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * vertices.Length, vertices, BufferUsageHint.StaticDraw);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+
+            //Копирование в память ГП данных о порядке отрисовки вершин
+            _spaceEdgeIndexBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _spaceEdgeIndexBuffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, sizeof(int) * indicies.Length, indicies, BufferUsageHint.StaticDraw);
+        }
+
+        private void RenderParticles()
+        {
+            GL.UseProgram(_particleShaderProgram);
+
+            int modelViewLocation = GL.GetUniformLocation(_particleShaderProgram, "modelView");
+            GL.UniformMatrix4(modelViewLocation, false, ref _modelView);
+
+            Matrix3 inverseModevView = new Matrix3(_modelView.Inverted());
+            int inverseModelViewLocation = GL.GetUniformLocation(_particleShaderProgram, "transposeInverseModelView");
+            GL.UniformMatrix3(inverseModelViewLocation, true, ref inverseModevView);
+
+            GL.BindVertexArray(_particleArrayBuffer);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _positionBuffer);
+
+            lock (_positionsSyncronizer)
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * _positions.Length, _positions, BufferUsageHint.StreamDraw);
+                GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(1);
+                GL.VertexAttribDivisor(1, 1);
+
+                GL.DrawElementsInstanced(PrimitiveType.Quads, _particleTotalVertices, DrawElementsType.UnsignedInt, (IntPtr)0, _positions.Length / 3);
+            }
+        }
+
+        private void RenderSpaceEdges()
+        {
+            GL.UseProgram(_spaceEdgeShaderProgram);
+
+            int modelViewLocation = GL.GetUniformLocation(_spaceEdgeShaderProgram, "modelView");
+            GL.UniformMatrix4(modelViewLocation, false, ref _modelView);
+
+            GL.BindVertexArray(_spaceEdgeArrayBuffer);
+            GL.DrawElements(BeginMode.Lines, _spaceEdgeTotalVertices, DrawElementsType.UnsignedInt, 0);
+        }
+
         #endregion Private methods
 
         #region Event handlers
@@ -240,31 +366,9 @@ namespace MolecularDynamics.Visualization
             Height = 800;
             Title = "Particle Visualizer";
 
-            string vertexShaderSource = GetEmbeddedResource(VertexShaderResourceName);
-            string fragmentShaderSource = GetEmbeddedResource(FragmentShaderResourceName);
-            
-            _shaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
-            
-            Tuple<float[], int[]> sphere = GenerateSphere(_sphereRadius, Faces);
-            _totalVertices = sphere.Item2.Length;
+            InitializeParticleRendering();
+            InitializeSpaceEdgeRendering();            
 
-            _arrayBuffer = GL.GenVertexArray();
-            _positionBuffer = GL.GenBuffer();
-           
-            GL.BindVertexArray(_arrayBuffer);
-            
-            //Копирование в память ГП данных о вершинах (вектора вершин и нормалей совпадают)
-            _vertexBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * sphere.Item1.Length, sphere.Item1, BufferUsageHint.StaticDraw);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);          
-            
-            //Копирование в память ГП данных о порядке отрисовки вершин
-            _indexBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indexBuffer);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, sizeof(int) * sphere.Item2.Length, sphere.Item2, BufferUsageHint.StaticDraw);
-            
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             
@@ -281,29 +385,9 @@ namespace MolecularDynamics.Visualization
         private void RenderFrameHandler(Object sender, FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            
-            GL.UseProgram(_shaderProgram);
-            
-            int modelViewLocation = GL.GetUniformLocation(_shaderProgram, "modelView");
-            GL.UniformMatrix4(modelViewLocation, false, ref _modelView);
-            
-            Matrix3 inverseModevView = new Matrix3(_modelView.Inverted());
-            int inverseModelViewLocation = GL.GetUniformLocation(_shaderProgram, "transposeInverseModelView");
-            GL.UniformMatrix3(inverseModelViewLocation, true, ref inverseModevView);
-            
-            GL.BindVertexArray(_arrayBuffer);
-            
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _positionBuffer);
 
-            lock (_positionsSyncronizer)
-            {
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * _positions.Length, _positions, BufferUsageHint.StreamDraw);
-                GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                GL.EnableVertexAttribArray(1);
-                GL.VertexAttribDivisor(1, 1);
-
-                GL.DrawElementsInstanced(PrimitiveType.Quads, _totalVertices, DrawElementsType.UnsignedInt, (IntPtr)0, _positions.Length / 3); 
-            }
+            RenderParticles();
+            RenderSpaceEdges();
             
             GL.BindVertexArray(0);
             

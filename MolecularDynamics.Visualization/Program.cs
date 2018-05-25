@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using MolecularDynamics.Model;
 using MolecularDynamics.Model.Atoms;
 
@@ -8,13 +6,14 @@ namespace MolecularDynamics.Visualization
 {
     internal class Program
     {
-        private static readonly SimulationParameters Parameters = new SimulationParameters(cellSize: (3.15, 3.15, 3.15), cellCount: (5, 10, 5))
+        private static readonly SimulationParameters Parameters = new SimulationParameters(
+            spaceSize: (3.5 * Wolfram.GridConstant, 3.5 * Wolfram.GridConstant, 7 * Wolfram.GridConstant),
+            cellCount: (7, 7, 14))
         {
             IntegrationStep = 0.1,
             DissipationCoefficient = 0.06 / 3.615,
-            Temperature = 100,
+            Temperature = 200,
             ParticleMass = Wolfram.AtomMass,
-            CellLayerCount = 5,
             StaticCellLayerCount = 2,
             InteractionRadius = 4,
             Threads = 1
@@ -22,29 +21,17 @@ namespace MolecularDynamics.Visualization
 
         private static void Main(string[] args)
         {
-            var (grid, particles) = ParticleGenerator.GenerateWolframGrid(Parameters);
+            ParticleGrid grid = new ParticleGrid(Parameters.SpaceSize,
+                                                 Parameters.CellCount,
+                                                 Parameters.CellSize,
+                                                 Parameters.InteractionRadius,
+                                                 Parameters.Threads);
 
-            //ParticleGrid grid = new ParticleGrid((20, 20, 20), (1, 1, 1), 0, 1);
-            //List<Particle> particles = new List<Particle>();
-
-            //Particle p1 = new Wolfram()
-            //{
-            //    Position = (9, 10, 10)
-            //};
-
-            //Particle p2 = new Wolfram()
-            //{
-            //    Position = (11.8, 10, 10)
-            //};
-
-            //grid.AddParticle(p1);
-            //grid.AddParticle(p2);
-            //particles.Add(p1);
-            //particles.Add(p2);
+            List<Particle> particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (3, 3, 6), Parameters);
 
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
 
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Wolfram.Radius))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Parameters.SpaceSize / 10.0, Wolfram.Radius))
             {
                 particleVisualizer.Run(30);
             }

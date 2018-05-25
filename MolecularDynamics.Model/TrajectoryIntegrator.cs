@@ -11,7 +11,7 @@ namespace MolecularDynamics.Model
         private ParticleGrid grid;
         private SimulationParameters parameters;
         private double velocityMultiplier;
-        private double randomForceLength;
+        private double randomForce;
         private NormalDistribution generator;
 
         /// <summary>
@@ -23,8 +23,8 @@ namespace MolecularDynamics.Model
         {
             this.grid = grid;
             this.parameters = parameters;
-            velocityMultiplier = 1.0 - parameters.DissipationCoefficient / parameters.IntegrationStep;
-            randomForceLength = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
+            velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
+            randomForce = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
                                           parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep);
 
             generator = new NormalDistribution();
@@ -119,7 +119,7 @@ namespace MolecularDynamics.Model
         private Vector3 RandomForce()
         {
             Vector3 r = new Vector3(generator.Next(), generator.Next(), generator.Next());
-            r.MultiplyToCurrent(randomForceLength);
+            r.MultiplyToCurrent(randomForce);
             return r;
         }
     }

@@ -39,11 +39,6 @@
         /// Масса частицы, а. е. м..
         /// </summary>
         public double ParticleMass;
-
-        /// <summary>
-        /// Количество заполняемых слоев ячеек сетки. 
-        /// </summary>
-        public int CellLayerCount;
         
         /// <summary>
         /// Количество неподвижных слоев ячеек.
@@ -63,16 +58,16 @@
         /// <summary>
         /// Создает новый экземпляр <see cref="SimulationParameters"/>.
         /// </summary>
-        /// <param name="cellSize">Размеры ячейки.</param>
+        /// <param name="spaceSize">Размеры пространства моделирования.</param>
         /// <param name="cellCount">Количество ячеек в сетке.</param>
-        public SimulationParameters(Vector3 cellSize, (int X, int Y, int Z) cellCount)
+        public SimulationParameters(Vector3 spaceSize, (int X, int Y, int Z) cellCount)
         {
-            CellSize = cellSize;
+            SpaceSize = spaceSize;
             CellCount = cellCount;
 
-            SpaceSize.X = cellSize.X * cellCount.X;
-            SpaceSize.Y = cellSize.Y * cellCount.Y;
-            SpaceSize.Z = cellSize.Z * cellCount.Z;
+            CellSize.X = SpaceSize.X / CellCount.X;
+            CellSize.Y = SpaceSize.Y / CellCount.Y;
+            CellSize.Z = SpaceSize.Z / CellCount.Z;
         }
     }
 }

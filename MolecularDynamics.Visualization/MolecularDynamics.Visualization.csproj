@@ -10,13 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Shaders\FragmentShader.glsl" />
-    <None Remove="Shaders\VertexShader.glsl" />
+    <None Remove="Shaders\ParticleFragmentShader.glsl" />
+    <None Remove="Shaders\ParticleVertexShader.glsl" />
+    <None Remove="Shaders\SpaceEdgeFragmentShader.glsl" />
+    <None Remove="Shaders\SpaceEdgeVertexShader.glsl" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\FragmentShader.glsl" />
-    <EmbeddedResource Include="Shaders\VertexShader.glsl" />
+    <EmbeddedResource Include="Shaders\ParticleFragmentShader.glsl" />
+    <EmbeddedResource Include="Shaders\ParticleVertexShader.glsl" />
+    <EmbeddedResource Include="Shaders\SpaceEdgeFragmentShader.glsl" />
+    <EmbeddedResource Include="Shaders\SpaceEdgeVertexShader.glsl" />
   </ItemGroup>
 
   <ItemGroup>

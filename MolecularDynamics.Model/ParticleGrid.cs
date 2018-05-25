@@ -212,14 +212,14 @@ namespace MolecularDynamics.Model
             Task.WaitAll(_tasks);
         }
 
-//        /// <summary>
-//        /// Добавляет частицу в сетку.
-//        /// </summary>
-//        /// <param name="particle">Добавляемая частица.</param>
-//        public void AddParticle(Particle particle)
-//        {
-//            GetContainingCell(ref particle.Position).Particles.Add(particle);
-//        }
+        /// <summary>
+        /// Добавляет частицу в сетку.
+        /// </summary>
+        /// <param name="particle">Добавляемая частица.</param>
+        public void AddParticle(Particle particle)
+        {
+            GetContainingCell(ref particle.Position).Particles.Add(particle);
+        }
 
         /// <summary>
         /// Представляет ячейку сетки частиц.

@@ -9,60 +9,40 @@ namespace MolecularDynamics.Model
     public static class ParticleGenerator
     {
         /// <summary>
-        /// Создает сетку и заполняет ее атомами вольфрама, образующими ОЦК решетку.
+        /// Заполняет сетку атомами вольфрама, образующими ОЦК решетку.
         /// </summary>
+        /// <param name="grid">Заполняемая сетка.</param>
+        /// <param name="startPosition">Начальная позиция атомов вольфрама.</param>
+        /// <param name="cellCount">Количество ячеек ОЦК решетки вольфрама.</param>
         /// <param name="parameters">Параметры моделирования частиц.</param>
         /// <returns></returns>
-        public static (ParticleGrid, List<Particle>) GenerateWolframGrid(SimulationParameters parameters)
+        public static List<Particle> GenerateWolframGrid(this ParticleGrid grid, Vector3 startPosition, (int X, int Y, int Z) cellCount, SimulationParameters parameters)
         {
-            double delta = parameters.CellSize.X * 0.25;
-
-            ParticleGrid grid = new ParticleGrid(parameters.SpaceSize,
-                                                 parameters.CellCount,
-                                                 parameters.CellSize, 
-                                                 parameters.InteractionRadius, 
-                                                 parameters.Threads);
-            
             List<Particle> particles = new List<Particle>();
 
-            grid.ForEachCell((cell, cellIndicies) =>
+            for (int z = 0; z < cellCount.Z; z++)
             {
-                if (cellIndicies.Y >= parameters.CellLayerCount)
+                for (int x = 0; x < cellCount.X; x++)
                 {
-                    return;
+                    for (int y = 0; y < cellCount.Y; y++)
+                    {
+                        Vector3 position;
+                        position.X = startPosition.X + Wolfram.GridConstant * x + (z % 2) * Wolfram.GridConstant / 2.0;
+                        position.Y = startPosition.Y + Wolfram.GridConstant * y + (z % 2) * Wolfram.GridConstant / 2.0;
+                        position.Z = startPosition.Z + z * Wolfram.GridConstant / 2.0;
+
+                        Particle particle = new Wolfram()
+                        {
+                            Position = position
+                        };
+
+                        particles.Add(particle);
+                        grid.AddParticle(particle);
+                    }
                 }
+            }
 
-                Vector3 p = cell.Position;
-
-                p.X -= delta;
-                p.Y -= delta;
-                p.Z -= delta;
-
-                Particle p1 = new Wolfram()
-                {
-                    Position = p
-                };
-
-                p.X += parameters.CellSize.X / 2.0;
-                p.Y += parameters.CellSize.Y / 2.0;
-                p.Z += parameters.CellSize.Z / 2.0;
-
-                Particle p2 = new Wolfram()
-                {
-                    Position = p
-                };
-
-                cell.Particles.Add(p1);
-                cell.Particles.Add(p2);
-
-                lock (particles)
-                {
-                    particles.Add(p1);
-                    particles.Add(p2); 
-                }
-            });
-
-            return (grid, particles);
+            return particles;
         }
     }
 }
