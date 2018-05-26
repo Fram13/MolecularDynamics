@@ -9,10 +9,16 @@ namespace MolecularDynamics.Model
     public class TrajectoryIntegrator
     {
         private ParticleGrid grid;
-        private SimulationParameters parameters;
         private double velocityMultiplier;
         private double randomForce;
         private NormalDistribution generator;
+
+        private double integrationStep;
+        private Vector3 spaceSize;
+        private double dissipationCoefficient;
+        private double particleMass;
+        private double temperature;
+        private int staticCellLayerCount;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
@@ -22,10 +28,15 @@ namespace MolecularDynamics.Model
         public TrajectoryIntegrator(ParticleGrid grid, SimulationParameters parameters)
         {
             this.grid = grid;
-            this.parameters = parameters;
-            velocityMultiplier = 1.0 - parameters.DissipationCoefficient * parameters.IntegrationStep;
-            randomForce = Math.Sqrt(2.0 * parameters.DissipationCoefficient * Constants.BoltzmannConstant *
-                                          parameters.ParticleMass * parameters.Temperature / parameters.IntegrationStep);
+            integrationStep = parameters.IntegrationStep;
+            spaceSize = parameters.SpaceSize;
+            dissipationCoefficient = parameters.DissipationCoefficient;
+            particleMass = parameters.ParticleMass;
+            temperature = parameters.Temperature;
+            staticCellLayerCount = parameters.StaticCellLayerCount;
+
+            velocityMultiplier = 1.0 - dissipationCoefficient * integrationStep;
+            randomForce = Math.Sqrt(2.0 * dissipationCoefficient * Constants.BoltzmannConstant * particleMass * temperature / integrationStep);
 
             generator = new NormalDistribution();
         }
@@ -38,7 +49,7 @@ namespace MolecularDynamics.Model
             //вычисление сил зваимодействия между каждой парой частиц
             grid.ForEachCell((cell, cellIndicies) =>
             {
-                if (cellIndicies.Y < parameters.StaticCellLayerCount)
+                if (cellIndicies.Z < staticCellLayerCount)
                 {
                     return;
                 }
@@ -81,7 +92,7 @@ namespace MolecularDynamics.Model
             //интегрирование Верле
             grid.ForEachCell((cell, cellIndicies) =>
             {
-                if (cellIndicies.Y < parameters.StaticCellLayerCount)
+                if (cellIndicies.Z < staticCellLayerCount)
                 {
                     return;
                 }
@@ -92,9 +103,13 @@ namespace MolecularDynamics.Model
                 {
                     Particle particle = particles[i];
 
-                    particle.Force/*.AddToCurrent(RandomForce())*/.DivideToCurrent(particle.Mass).MultiplyToCurrent(parameters.IntegrationStep);
-                    particle.Velocity.AddToCurrent(particle.Force).MultiplyToCurrent(velocityMultiplier);
-                    particle.Position.AddToCurrent(particle.Velocity * parameters.IntegrationStep);
+                    particle.Force.AddToCurrent(RandomForce());
+                    particle.Force.MultiplyToCurrent(integrationStep / particle.Mass);
+
+                    particle.Velocity.AddToCurrent(particle.Force);
+                    particle.Velocity.MultiplyToCurrent(velocityMultiplier);
+
+                    particle.Position.AddToCurrent(particle.Velocity * integrationStep);
                 }
             });
 
@@ -105,9 +120,9 @@ namespace MolecularDynamics.Model
         {
             Vector3 r = p2.Position - p1.Position;
 
-            r.X = Math.Abs(r.X) > parameters.SpaceSize.X / 2.0 ? r.X - Math.Sign(r.X) * parameters.SpaceSize.X : r.X;
-            r.Y = Math.Abs(r.Y) > parameters.SpaceSize.Y / 2.0 ? r.Y - Math.Sign(r.Y) * parameters.SpaceSize.Y : r.Y;
-            r.Z = Math.Abs(r.Z) > parameters.SpaceSize.Z / 2.0 ? r.Z - Math.Sign(r.Z) * parameters.SpaceSize.Z : r.Z;
+            r.X = Math.Abs(r.X) > spaceSize.X / 2.0 ? r.X - Math.Sign(r.X) * spaceSize.X : r.X;
+            r.Y = Math.Abs(r.Y) > spaceSize.Y / 2.0 ? r.Y - Math.Sign(r.Y) * spaceSize.Y : r.Y;
+            r.Z = Math.Abs(r.Z) > spaceSize.Z / 2.0 ? r.Z - Math.Sign(r.Z) * spaceSize.Z : r.Z;
 
             double distance = r.Norm();
             r.DivideToCurrent(distance);

@@ -50,12 +50,13 @@ namespace MolecularDynamics.Visualization
         private CancellationTokenSource _cts;
 
         #endregion Fields
-        
+
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
         /// </summary>
         /// <param name="particles">Список визуализируемых частиц.</param>
         /// <param name="integrator">Интегратор траекторий движения частиц.</param>
+        /// <param name="spaceSize">Размеры пространства моделирования.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
         public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, Model.Vector3 spaceSize, double sphereRadius)
         {
@@ -380,6 +381,7 @@ namespace MolecularDynamics.Visualization
         private void ResizeHandler(Object sender, EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
+            _modelView = _modelView * Matrix4.CreateScale(1.0f, (float)Width / Height, 1.0f);
         }
 
         private void RenderFrameHandler(Object sender, FrameEventArgs e)

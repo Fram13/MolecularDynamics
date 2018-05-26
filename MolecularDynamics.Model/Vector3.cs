@@ -79,20 +79,20 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 Add(Vector3 other)
         {
-            return new Vector3(this.X + other.X, this.Y + other.Y, this.Z + other.Z);
+            Vector3 result = this;
+            result.AddToCurrent(other);
+            return result;
         }
 
         /// <summary>
         /// Выполняет сложение векторов и записывает результат в текущий вектор.
         /// </summary>
         /// <param name="other">Правый вектор.</param>
-        public Vector3 AddToCurrent(Vector3 other)
+        public void AddToCurrent(Vector3 other)
         {
             this.X += other.X;
             this.Y += other.Y;
             this.Z += other.Z;
-
-            return this;
         }
 
         /// <summary>
@@ -101,20 +101,20 @@ namespace MolecularDynamics.Model
         /// <param name="other">Правый вектор.</param>
         public Vector3 Subtract(Vector3 other)
         {
-            return new Vector3(this.X - other.X, this.Y - other.Y, this.Z - other.Z);
+            Vector3 result = this;
+            result.SubtractToCurrent(other);
+            return result;
         }
 
         /// <summary>
         /// Выполняет вычитание векторов и записывает результат в текущий вектор.
         /// </summary>
         /// <param name="other">Правый вектор.</param>
-        public Vector3 SubtractToCurrent(Vector3 other)
+        public void SubtractToCurrent(Vector3 other)
         {
             this.X -= other.X;
             this.Y -= other.Y;
             this.Z -= other.Z;
-
-            return this;
         }
 
         /// <summary>
@@ -123,20 +123,20 @@ namespace MolecularDynamics.Model
         /// <param name="other">Скаляр.</param>
         public Vector3 Multiply(double other)
         {
-            return new Vector3(X * other, Y * other, Z * other);
+            Vector3 result = this;
+            result.MultiplyToCurrent(other);
+            return result;
         }
 
         /// <summary>
         /// Выполняет умножение вектора на скаляр и записывает результат в текущий вектор.
         /// </summary>
         /// <param name="other">Правый вектор.</param>
-        public Vector3 MultiplyToCurrent(double other)
+        public void MultiplyToCurrent(double other)
         {
             X *= other;
             Y *= other;
             Z *= other;
-
-            return this;
         }
 
         /// <summary>
@@ -145,20 +145,20 @@ namespace MolecularDynamics.Model
         /// <param name="other">Скаляр.</param>
         public Vector3 Divide(double other)
         {
-            return new Vector3(X / other, Y / other, Z / other);
+            Vector3 result = this;
+            result.DivideToCurrent(other);
+            return result;
         }
 
         /// <summary>
         /// Выполняет деление вектора на скаляр и записывает результат в текущий вектор.
         /// </summary>
         /// <param name="other">Правый вектор.</param>
-        public Vector3 DivideToCurrent(double other)
+        public void DivideToCurrent(double other)
         {
             X /= other;
             Y /= other;
             Z /= other;
-
-            return this;
         }
 
         #endregion Methods

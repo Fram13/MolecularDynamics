@@ -7,16 +7,16 @@ namespace MolecularDynamics.Visualization
     internal class Program
     {
         private static readonly SimulationParameters Parameters = new SimulationParameters(
-            spaceSize: (3.5 * Wolfram.GridConstant, 3.5 * Wolfram.GridConstant, 7 * Wolfram.GridConstant),
-            cellCount: (7, 7, 14))
+            spaceSize: (6.5 * Wolfram.GridConstant, 6.5 * Wolfram.GridConstant, 14 * Wolfram.GridConstant),
+            cellCount: (14, 14, 28))
         {
             IntegrationStep = 0.1,
             DissipationCoefficient = 0.06 / 3.615,
             Temperature = 200,
             ParticleMass = Wolfram.AtomMass,
-            StaticCellLayerCount = 2,
+            StaticCellLayerCount = 4,
             InteractionRadius = 4,
-            Threads = 1
+            Threads = 4
         };
 
         private static void Main(string[] args)
@@ -27,7 +27,9 @@ namespace MolecularDynamics.Visualization
                                                  Parameters.InteractionRadius,
                                                  Parameters.Threads);
 
-            List<Particle> particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (3, 3, 6), Parameters);
+            List<Particle> particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (6, 6, 12), Parameters);
+
+            System.Console.WriteLine("Particles: " + particles.Count);
 
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
 
