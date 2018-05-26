@@ -25,6 +25,8 @@
         /// </summary>
         public double Mass;
 
+        public bool Static;
+
         /// <summary>
         /// Возвращает величину взаимодействия пары частиц.
         /// </summary>

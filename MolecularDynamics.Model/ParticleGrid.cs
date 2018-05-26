@@ -148,6 +148,11 @@ namespace MolecularDynamics.Model
 
                         for (int zCounter = 0; zCounter < 2 * nearestCellCount.Z + 1; zCounter++)
                         {
+                            if (cell.Position.Z > _spaceSize.Z - interactionRadius)
+                            {
+                                continue;
+                            }
+
                             if (cellIndicies.X != x || cellIndicies.Y != y || cellIndicies.Z != z)
                             {
                                 //if ((cell.Position - nearestCellPosition).NormSquared() < _interactionRadiusSquared)

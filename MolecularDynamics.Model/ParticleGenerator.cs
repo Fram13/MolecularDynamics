@@ -33,7 +33,8 @@ namespace MolecularDynamics.Model
 
                         Particle particle = new Wolfram()
                         {
-                            Position = position
+                            Position = position,
+                            Static = z < parameters.StaticCellLayerCount
                         };
 
                         particles.Add(particle);

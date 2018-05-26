@@ -20,6 +20,8 @@ namespace MolecularDynamics.Model
         private double temperature;
         private int staticCellLayerCount;
 
+        public ParticleGrid Grid => grid;
+
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
@@ -49,17 +51,17 @@ namespace MolecularDynamics.Model
             //вычисление сил зваимодействия между каждой парой частиц
             grid.ForEachCell((cell, cellIndicies) =>
             {
-                if (cellIndicies.Z < staticCellLayerCount)
-                {
-                    return;
-                }
-
                 IList<Particle> particles = cell.Particles;
                 IList<ParticleGrid.Cell> boundaryCells = cell.BoundaryCells;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
-                    Particle particle = particles[i];                    
+                    Particle particle = particles[i];
+
+                    if (particle.Static)
+                    {
+                        continue;
+                    }
 
                     particle.Force.X = 0.0;
                     particle.Force.Y = 0.0;
@@ -92,16 +94,16 @@ namespace MolecularDynamics.Model
             //интегрирование Верле
             grid.ForEachCell((cell, cellIndicies) =>
             {
-                if (cellIndicies.Z < staticCellLayerCount)
-                {
-                    return;
-                }
-
                 IList<Particle> particles = cell.Particles;
 
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];
+
+                    if (particle.Static)
+                    {
+                        continue;
+                    }
 
                     particle.Force.AddToCurrent(RandomForce());
                     particle.Force.MultiplyToCurrent(integrationStep / particle.Mass);

@@ -14,9 +14,9 @@ namespace MolecularDynamics.Visualization
             DissipationCoefficient = 0.06 / 3.615,
             Temperature = 200,
             ParticleMass = Wolfram.AtomMass,
-            StaticCellLayerCount = 4,
+            StaticCellLayerCount = 6,
             InteractionRadius = 4,
-            Threads = 4
+            Threads = 1
         };
 
         private static void Main(string[] args)

@@ -66,8 +66,8 @@ namespace MolecularDynamics.Visualization
             _spaceSize.Y = (float)spaceSize.Y;
             _spaceSize.Z = (float)spaceSize.Z;
 
-            _positions = new float[particles.Count * 3];
-            _nextPositions = new float[particles.Count * 3];
+            _positions = new float[particles.Count * 3 * 2];
+            _nextPositions = new float[particles.Count * 3 * 2];
 
             for (int i = 0; i < particles.Count; i++)
             {
@@ -223,9 +223,37 @@ namespace MolecularDynamics.Visualization
 
         private void Integrate(CancellationToken ct)
         {
+            int c = 0;
+            Random random = new Random();
+
             while (!ct.IsCancellationRequested)
             {
+                if (c == 2500)
+                {
+                    var p = new Model.Atoms.Wolfram()
+                    {
+                        Position = (_spaceSize.X * 10.0 * random.NextDouble(), _spaceSize.Y * 10.0 * random.NextDouble(), (_spaceSize.Z - _sphereRadius) * 10.0),
+                        Velocity = (0, 0, -0.4)
+                    };
+
+                    _particles.Add(p);
+                    _integrator.Grid.AddParticle(p);
+                    _nextPositions[_particles.Count] = (float)(p.Position.X / 10.0);
+                    _nextPositions[_particles.Count + 1] = (float)(p.Position.Y / 10.0);
+                    _nextPositions[_particles.Count + 2] = (float)(p.Position.Z / 10.0);
+
+                    lock (_positionsSyncronizer)
+                    {
+                        _positions[_particles.Count] = _nextPositions[_particles.Count];
+                        _positions[_particles.Count + 1] = _nextPositions[_particles.Count + 1];
+                        _positions[_particles.Count + 2] = _nextPositions[_particles.Count + 2];
+                    }
+
+                    c = 0;
+                }
+
                 _integrator.NextStep();
+                c++;
 
                 for (int i = 0; i < _particles.Count; i++)
                 {
@@ -381,7 +409,6 @@ namespace MolecularDynamics.Visualization
         private void ResizeHandler(Object sender, EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
-            _modelView = _modelView * Matrix4.CreateScale(1.0f, (float)Width / Height, 1.0f);
         }
 
         private void RenderFrameHandler(Object sender, FrameEventArgs e)
