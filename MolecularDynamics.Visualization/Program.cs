@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using MolecularDynamics.Model;
 using MolecularDynamics.Model.Atoms;
 
@@ -16,25 +18,75 @@ namespace MolecularDynamics.Visualization
             ParticleMass = Wolfram.AtomMass,
             StaticCellLayerCount = 6,
             InteractionRadius = 4,
-            Threads = 1
+            Threads = 4
         };
+
+        private static Random random = new Random();
+
+        private static List<Particle> particles;
+        private static ParticleGrid grid;
+        private static TrajectoryIntegrator integrator;
+        private static double nextParticleTime;
+        private static double totalTime;
+        private static int realTotalTime;
+
+        private static void Integrate(List<Particle> particleList)
+        {
+            integrator.NextStep();
+            nextParticleTime += Parameters.IntegrationStep;
+            totalTime += Parameters.IntegrationStep;
+
+            if (nextParticleTime > 400)
+            {
+                Vector3 position;
+                position.X = Parameters.SpaceSize.X * random.NextDouble();
+                position.Y = Parameters.SpaceSize.Y * random.NextDouble();
+                position.Z = Parameters.SpaceSize.Z - Wolfram.Radius;
+
+                Particle particle = new Wolfram()
+                {
+                    Position = position,
+                    Velocity = (0, 0, -0.4)
+                };
+
+                grid.AddParticle(particle);
+                particleList.Add(particle);
+
+                nextParticleTime = 0.0;
+            }
+        }
+
+        private static void ShowStatistics(CancellationToken ct)
+        {
+            Console.WriteLine("Время моделирования, 1е-14 с\t\tВремя интегрирования, с\t\tКоличество частиц\t\tТемпература, К");
+
+            while (!ct.IsCancellationRequested)
+            {
+                Console.WriteLine($"{Math.Round(totalTime, 4)}\t\t{realTotalTime}\t\t{particles.Count}\t\t{Math.Round(particles.Temperature(), 4)}");
+                Console.WriteLine();
+
+                Thread.Sleep(5000);
+                realTotalTime += 5;
+            }
+        }
 
         private static void Main(string[] args)
         {
-            ParticleGrid grid = new ParticleGrid(Parameters.SpaceSize,
+            grid = new ParticleGrid(Parameters.SpaceSize,
                                                  Parameters.CellCount,
                                                  Parameters.CellSize,
                                                  Parameters.InteractionRadius,
                                                  Parameters.Threads);
 
-            List<Particle> particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (6, 6, 12), Parameters);
+            particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (6, 6, 12), Parameters);
 
-            System.Console.WriteLine("Particles: " + particles.Count);
+            integrator = new TrajectoryIntegrator(grid, Parameters);
 
-            TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
-
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Parameters.SpaceSize, Wolfram.Radius))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, Parameters.SpaceSize, Wolfram.Radius))
             {
+                particleVisualizer.UpdateParticlesExternally = Integrate;
+                particleVisualizer.UpdateStatistics = ShowStatistics;
+
                 particleVisualizer.Run(30);
             }
         }

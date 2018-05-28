@@ -1,5 +1,4 @@
-﻿using System;
-using OpenTK;
+﻿using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace MolecularDynamics.Visualization.GraphicModels
@@ -99,7 +98,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
         /// <param name="viewModel">Видовая матрица визуализатора.</param>
         /// <param name="parameters">Дополнительные параметры для отрисовки модели.</param>
         /// </summary>
-        public override void Render(ref Matrix4 viewModel, Object[] parameters = null)
+        public override void Render(ref Matrix4 viewModel, GraphicModelRenderingParameters parameters = null)
         {
             GL.UseProgram(shaderProgram);
 

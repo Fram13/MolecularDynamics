@@ -17,57 +17,47 @@ namespace MolecularDynamics.Visualization
     {
         #region Fields
 
-        private const int Faces = 10;
-
         private Matrix4 _viewModel;
 
         private Object _positionsSynchronizer;
         private float[] _positions;
         private float[] _nextPositions;
-        private Object[] _sphereRenderingParameters;
 
         private List<Particle> _particles;
-        private TrajectoryIntegrator _integrator;
         private CancellationTokenSource _cts;
 
         private GraphicModel _sphere;
-        private GraphicModel _spaceBorder;        
+        private GraphicModel _spaceBorder;
+
+        private Sphere.RenderingParameters _sphereRenderingParameters;
 
         #endregion Fields
+
+        /// <summary>
+        /// Обновляет частицы.
+        /// </summary>
+        public Action<List<Particle>> UpdateParticlesExternally { get; set; }
+
+        /// <summary>
+        /// Обновляет статистику.
+        /// </summary>
+        public Action<CancellationToken> UpdateStatistics { get; set; }
 
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
         /// </summary>
         /// <param name="particles">Список визуализируемых частиц.</param>
-        /// <param name="integrator">Интегратор траекторий движения частиц.</param>
-        /// <param name="spaceSize">Размеры пространства моделирования.</param>
+        /// <param name="spaceSize">Размеры пространства моделирования, А.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
-        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, Model.Vector3 spaceSize, double sphereRadius)
+        public ParticleVisualizer(List<Particle> particles, Model.Vector3 spaceSize, double sphereRadius)
         {
-            _particles = particles;
-            _integrator = integrator;
-
-            _positionsSynchronizer = new Object();
-            _sphere = new Sphere(sphereRadius, Faces);
+            _particles = particles;            
+            _sphere = new Sphere(sphereRadius);
             _spaceBorder = new SpaceBorder(spaceSize);
+            _sphereRenderingParameters = new Sphere.RenderingParameters();
+            _positionsSynchronizer = new Object();
 
-            _positions = new float[particles.Count * 3];
-            _nextPositions = new float[particles.Count * 3];
-
-            for (int i = 0; i < particles.Count; i++)
-            {
-                Particle particle = particles[i];
-
-                _positions[3 * i] = (float)(particle.Position.X / 10.0);
-                _positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
-                _positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
-            }
-
-            _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));
-
-            _sphereRenderingParameters = new Object[2];
-            _sphereRenderingParameters[0] = _positions;
-            _sphereRenderingParameters[1] = _positionsSynchronizer;
+            _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));           
             
             Load += LoadHandler;
             Resize += ResizeHandler;
@@ -89,78 +79,6 @@ namespace MolecularDynamics.Visualization
             base.Dispose(manual);
         }
 
-        #region Private methods
-
-        /// <summary>
-        /// Обменивает буферы компонент позиций частиц.
-        /// </summary>
-        private void SwapPositionsBuffers()
-        {
-            lock (_positionsSynchronizer)
-            {
-                float[] temp = _positions;
-                _positions = _nextPositions;
-                _nextPositions = temp;
-                _sphereRenderingParameters[0] = _positions;
-            }
-        }
-
-        private void Integrate(CancellationToken ct)
-        {
-            //int c = 0;
-            //Random random = new Random();
-
-            while (!ct.IsCancellationRequested)
-            {
-                //if (c == 2500)
-                //{
-                //    var p = new Model.Atoms.Wolfram()
-                //    {
-                //        Position = (_spaceSize.X * 10.0 * random.NextDouble(), _spaceSize.Y * 10.0 * random.NextDouble(), (_spaceSize.Z - _sphereRadius) * 10.0),
-                //        Velocity = (0, 0, -0.4)
-                //    };
-
-                //    _particles.Add(p);
-                //    _integrator.Grid.AddParticle(p);
-                //    _nextPositions[_particles.Count] = (float)(p.Position.X / 10.0);
-                //    _nextPositions[_particles.Count + 1] = (float)(p.Position.Y / 10.0);
-                //    _nextPositions[_particles.Count + 2] = (float)(p.Position.Z / 10.0);
-
-                //    lock (_positionsSyncronizer)
-                //    {
-                //        _positions[_particles.Count] = _nextPositions[_particles.Count];
-                //        _positions[_particles.Count + 1] = _nextPositions[_particles.Count + 1];
-                //        _positions[_particles.Count + 2] = _nextPositions[_particles.Count + 2];
-                //    }
-
-                //    c = 0;
-                //}
-
-                _integrator.NextStep();
-                //c++;
-
-                for (int i = 0; i < _particles.Count; i++)
-                {
-                    _nextPositions[3 * i] = (float)(_particles[i].Position.X / 10.0);
-                    _nextPositions[3 * i + 1] = (float)(_particles[i].Position.Y / 10.0);
-                    _nextPositions[3 * i + 2] = (float)(_particles[i].Position.Z / 10.0);
-                }
-
-                SwapPositionsBuffers();
-            }
-        }
-
-        private void ShowStatistics(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                Thread.Sleep(5000);
-                Console.WriteLine(_particles.Temperature());
-            }
-        }
-
-        #endregion Private methods
-
         #region Event handlers
 
         private void LoadHandler(Object sender, EventArgs e)
@@ -168,10 +86,17 @@ namespace MolecularDynamics.Visualization
             VSync = VSyncMode.On;
             Width = 800;
             Height = 800;
-            Title = "Particle Visualizer";
+            Title = "Визуализатор частиц";
+
+            AllocatePositionBuffers();
+            UpdatePositionBuffer();
 
             _sphere.Initialize();
             _spaceBorder.Initialize();
+
+            _sphereRenderingParameters.Positions = _positions;
+            _sphereRenderingParameters.InstanceCount = _particles.Count;
+            _sphereRenderingParameters.PositionSynchronizer = _positionsSynchronizer;
 
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -243,20 +168,98 @@ namespace MolecularDynamics.Visualization
                     break;
 
                 case Key.Space:
-                    if (_cts == null || _cts.IsCancellationRequested)
-                    {
-                        _cts = new CancellationTokenSource();
-                        Task.Run(() => Integrate(_cts.Token));
-                        Task.Run(() => ShowStatistics(_cts.Token));
-                    }
-                    else
-                    {
-                        _cts.Cancel();
-                    }
+                    SwitchParallelTasks();
                     break;
             }
         }
-        
+
         #endregion Event handlers
+
+        #region Private methods
+
+        /// <summary>
+        /// Обменивает буферы компонент позиций частиц.
+        /// </summary>
+        private void SwapPositionsBuffers()
+        {
+            lock (_positionsSynchronizer)
+            {
+                float[] temp = _positions;
+                _positions = _nextPositions;
+                _nextPositions = temp;
+                _sphereRenderingParameters.Positions = _positions;
+            }
+        }
+
+        /// <summary>
+        /// Выполняет обновление списка частиц.
+        /// </summary>
+        /// <param name="ct">Объект, распространяющий уведомление о том, что операцию следует отменить.</param>
+        private void UpdateParticles(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                int count = _particles.Count;
+                int capacity = _particles.Capacity;
+
+                UpdateParticlesExternally(_particles);
+
+                if (_particles.Capacity != capacity)
+                {
+                    AllocatePositionBuffers();
+                }
+
+                if (_particles.Count != count)
+                {
+                    _sphereRenderingParameters.InstanceCount = _particles.Count;
+                }
+
+                UpdatePositionBuffer();
+                SwapPositionsBuffers();
+            }
+        }
+
+        /// <summary>
+        /// Выделяет память для буферов компонент положений частиц.
+        /// </summary>
+        private void AllocatePositionBuffers()
+        {
+            _positions = new float[_particles.Capacity * 3];
+            _nextPositions = new float[_particles.Capacity * 3];
+        }
+
+        /// <summary>
+        /// Обновляет текущий буфер компонент положений частиц.
+        /// </summary>
+        private void UpdatePositionBuffer()
+        {
+            for (int i = 0; i < _particles.Count; i++)
+            {
+                Particle particle = _particles[i];
+
+                _positions[3 * i] = (float)(particle.Position.X / 10.0);
+                _positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
+                _positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
+            }
+        }
+
+        /// <summary>
+        /// Запускает или останавливает задачи, выполняющиеся параллельно визуализации.
+        /// </summary>
+        private void SwitchParallelTasks()
+        {
+            if (_cts == null || _cts.IsCancellationRequested)
+            {
+                _cts = new CancellationTokenSource();
+                Task.Run(() => UpdateParticles(_cts.Token));
+                Task.Run(() => UpdateStatistics(_cts.Token));
+            }
+            else
+            {
+                _cts.Cancel();
+            }
+        }
+
+        #endregion Private methods
     }
 }

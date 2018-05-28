@@ -12,9 +12,9 @@ namespace MolecularDynamics.Visualization.GraphicModels
     {
         private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereVertexShader.glsl";
         private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereFragmentShader.glsl";
+        private const int Layers = 10;
 
-        private double sphereRadius;
-        private int layers;
+        private double sphereRadius;        
 
         private int vertexCount;
         private int shaderProgram;
@@ -27,11 +27,9 @@ namespace MolecularDynamics.Visualization.GraphicModels
         /// Создает новый экземпляр <see cref="Sphere"/>.
         /// </summary>
         /// <param name="sphereRadius">Радиус сферы.</param>
-        /// <param name="layers">Количество уровней сферы.</param>
-        public Sphere(double sphereRadius, int layers)
+        public Sphere(double sphereRadius)
         {
             this.sphereRadius = sphereRadius;
-            this.layers = layers;
         }
 
         /// <summary>
@@ -82,11 +80,9 @@ namespace MolecularDynamics.Visualization.GraphicModels
         /// <param name="viewModel">Видовая матрица визуализатора.</param>
         /// <param name="parameters">Дополнительные параметры для отрисовки модели.</param>
         /// </summary>
-        public override void Render(ref Matrix4 viewModel, Object[] parameters = null)
+        public override void Render(ref Matrix4 viewModel, GraphicModelRenderingParameters parameters = null)
         {
-            float[] positions = (float[])parameters[0];
-            Object synchronizer = parameters[1];
-            int instanceCount = positions.Length / 3;
+            RenderingParameters rp = (RenderingParameters)parameters;
 
             GL.UseProgram(shaderProgram);
 
@@ -101,16 +97,16 @@ namespace MolecularDynamics.Visualization.GraphicModels
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, positionBuffer);
 
-            lock (synchronizer)
+            lock (rp.PositionSynchronizer)
             {
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * positions.Length, positions, BufferUsageHint.StreamDraw); 
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * rp.InstanceCount * 3, rp.Positions, BufferUsageHint.StreamDraw); 
             }
 
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribDivisor(1, 1);
 
-            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, instanceCount);
+            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, rp.InstanceCount);
         }
 
         private (float[] VerticesComponents, int[] Indicies) GenerateSphere()
@@ -135,7 +131,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
             }
 
             double max = 2.0 * Math.PI;
-            double step = max / layers;
+            double step = max / Layers;
 
             for (double theta = 0.0; theta < Math.PI; theta += step)
             {
@@ -160,6 +156,27 @@ namespace MolecularDynamics.Visualization.GraphicModels
             }
 
             return (verticesComponents, indicies.ToArray());
+        }
+
+        /// <summary>
+        /// Представляет параметры отрисовки сферы.
+        /// </summary>
+        public class RenderingParameters : GraphicModelRenderingParameters
+        {
+            /// <summary>
+            /// Массив компонент положений сфер.
+            /// </summary>
+            public float[] Positions { get; set; }
+
+            /// <summary>
+            /// Количество сфер.
+            /// </summary>
+            public int InstanceCount { get; set; }
+
+            /// <summary>
+            /// Объект синхронизации массива компонент положений сфер.
+            /// </summary>
+            public Object PositionSynchronizer { get; set; }
         }
     }
 }

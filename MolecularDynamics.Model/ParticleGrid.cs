@@ -85,18 +85,22 @@ namespace MolecularDynamics.Model
                 for (int i = 0; i < particles.Count; i++)
                 {
                     Particle particle = particles[i];
-                    var containingCell = GetContainingCell(ref particle.Position);
 
-                    if (containingCell != cell)
-                    {
-                        lock (particles)
+                    lock (particle)
+                    {                        
+                        var containingCell = GetContainingCell(ref particle.Position);
+
+                        if (containingCell != cell)
                         {
-                            lock (containingCell.Particles)
+                            lock (particles)
                             {
-                                particles.RemoveAt(i);
-                                containingCell.Particles.Add(particle);
+                                lock (containingCell.Particles)
+                                {
+                                    particles.RemoveAt(i);
+                                    containingCell.Particles.Add(particle);
+                                }
                             }
-                        }
+                        } 
                     }
                 }
             });
