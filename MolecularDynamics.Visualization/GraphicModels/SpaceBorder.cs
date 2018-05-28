@@ -99,7 +99,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
         /// <param name="viewModel">Видовая матрица визуализатора.</param>
         /// <param name="parameters">Дополнительные параметры для отрисовки модели.</param>
         /// </summary>
-        public override void Render(ref Matrix4 viewModel, params Object[] parameters)
+        public override void Render(ref Matrix4 viewModel, Object[] parameters = null)
         {
             GL.UseProgram(shaderProgram);
 

@@ -24,6 +24,7 @@ namespace MolecularDynamics.Visualization
         private Object _positionsSynchronizer;
         private float[] _positions;
         private float[] _nextPositions;
+        private Object[] _sphereRenderingParameters;
 
         private List<Particle> _particles;
         private TrajectoryIntegrator _integrator;
@@ -62,7 +63,11 @@ namespace MolecularDynamics.Visualization
                 _positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
             }
 
-            _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));            
+            _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));
+
+            _sphereRenderingParameters = new Object[2];
+            _sphereRenderingParameters[0] = _positions;
+            _sphereRenderingParameters[1] = _positionsSynchronizer;
             
             Load += LoadHandler;
             Resize += ResizeHandler;
@@ -96,6 +101,7 @@ namespace MolecularDynamics.Visualization
                 float[] temp = _positions;
                 _positions = _nextPositions;
                 _nextPositions = temp;
+                _sphereRenderingParameters[0] = _positions;
             }
         }
 
@@ -184,7 +190,7 @@ namespace MolecularDynamics.Visualization
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _sphere.Render(ref _viewModel, _positions, _positionsSynchronizer);
+            _sphere.Render(ref _viewModel, _sphereRenderingParameters);
             _spaceBorder.Render(ref _viewModel);
             
             GL.BindVertexArray(0);
