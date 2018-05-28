@@ -33,7 +33,7 @@ namespace MolecularDynamics.Visualization
 
             TrajectoryIntegrator integrator = new TrajectoryIntegrator(grid, Parameters);
 
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Parameters.SpaceSize / 10.0, Wolfram.Radius))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Parameters.SpaceSize, Wolfram.Radius))
             {
                 particleVisualizer.Run(30);
             }

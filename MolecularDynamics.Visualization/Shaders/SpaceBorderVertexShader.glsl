@@ -2,9 +2,9 @@
 
 layout (location = 0) in vec3 vertex;
 
-uniform mat4 modelView;
+uniform mat4 viewModel;
 
 void main()
 {
-	gl_Position = modelView * vec4(vertex, 1.0f);
+	gl_Position = viewModel * vec4(vertex, 1.0f);
 }
