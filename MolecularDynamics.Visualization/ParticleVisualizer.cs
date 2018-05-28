@@ -21,7 +21,7 @@ namespace MolecularDynamics.Visualization
 
         private Matrix4 _viewModel;
 
-        private Object _positionsSyncronizer;
+        private Object _positionsSynchronizer;
         private float[] _positions;
         private float[] _nextPositions;
 
@@ -46,7 +46,7 @@ namespace MolecularDynamics.Visualization
             _particles = particles;
             _integrator = integrator;
 
-            _positionsSyncronizer = new Object();
+            _positionsSynchronizer = new Object();
             _sphere = new Sphere(sphereRadius, Faces);
             _spaceBorder = new SpaceBorder(spaceSize);
 
@@ -91,7 +91,7 @@ namespace MolecularDynamics.Visualization
         /// </summary>
         private void SwapPositionsBuffers()
         {
-            lock (_positionsSyncronizer)
+            lock (_positionsSynchronizer)
             {
                 float[] temp = _positions;
                 _positions = _nextPositions;
@@ -184,11 +184,7 @@ namespace MolecularDynamics.Visualization
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            lock (_positionsSyncronizer)
-            {
-                _sphere.Render(ref _viewModel, _positions);
-            }
-            
+            _sphere.Render(ref _viewModel, _positions, _positionsSynchronizer);
             _spaceBorder.Render(ref _viewModel);
             
             GL.BindVertexArray(0);

@@ -85,6 +85,8 @@ namespace MolecularDynamics.Visualization.GraphicModels
         public override void Render(ref Matrix4 viewModel, params Object[] parameters)
         {
             float[] positions = (float[])parameters[0];
+            Object synchronizer = parameters[1];
+            int instanceCount = positions.Length / 3;
 
             GL.UseProgram(shaderProgram);
 
@@ -99,12 +101,16 @@ namespace MolecularDynamics.Visualization.GraphicModels
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, positionBuffer);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * positions.Length, positions, BufferUsageHint.StreamDraw);
+            lock (synchronizer)
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * positions.Length, positions, BufferUsageHint.StreamDraw); 
+            }
+
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribDivisor(1, 1);
 
-            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, positions.Length / 3);
+            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, instanceCount);
         }
 
         private (float[] VerticesComponents, int[] Indicies) GenerateSphere()
