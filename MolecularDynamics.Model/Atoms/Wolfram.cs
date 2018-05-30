@@ -5,6 +5,7 @@ namespace MolecularDynamics.Model.Atoms
     /// <summary>
     /// Представляет атом вольфрама.
     /// </summary>
+    [Serializable]
     public class Wolfram : Particle
     {
         /// <summary>

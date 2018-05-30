@@ -1,8 +1,11 @@
-﻿namespace MolecularDynamics.Model
+﻿using System;
+
+namespace MolecularDynamics.Model
 {
     /// <summary>
     /// Представляет частицу, которая образуют моделируемое вещество. 
     /// </summary>
+    [Serializable]
     public abstract class Particle
     {
         /// <summary>

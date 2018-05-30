@@ -6,6 +6,7 @@ namespace MolecularDynamics.Model
     /// <summary>
     /// Представляет трехмерный вектор.
     /// </summary>
+    [Serializable]
     public struct Vector3
     {
         #region Fields

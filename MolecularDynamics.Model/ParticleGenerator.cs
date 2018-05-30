@@ -45,5 +45,18 @@ namespace MolecularDynamics.Model
 
             return particles;
         }
+
+        /// <summary>
+        /// Заполняет сетку указанными частицами.
+        /// </summary>
+        /// <param name="grid">Заполняемая сетка.</param>
+        /// <param name="particles">Список частиц.</param>
+        public static void FillGrid(this ParticleGrid grid, List<Particle> particles)
+        {
+            for (int i = 0; i < particles.Count; i++)
+            {
+                grid.AddParticle(particles[i]);
+            }
+        }
     }
 }

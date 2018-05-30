@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using MolecularDynamics.Model;
 using MolecularDynamics.Model.Atoms;
@@ -90,6 +92,18 @@ namespace MolecularDynamics.Visualization
 
                 particleVisualizer.Run(30);
             }
+        }
+
+        private static void SerializeParticles(Stream stream, List<Particle> particleList)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(stream, particleList);
+        }
+
+        private static List<Particle> DeserializeParticles(Stream stream)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            return (List<Particle>)bf.Deserialize(stream);
         }
     }
 }
