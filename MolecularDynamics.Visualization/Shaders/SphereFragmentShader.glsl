@@ -1,7 +1,7 @@
 #version 440 core
 
 in vec3 normal;
-in vec4 color;
+in vec3 color;
 
 out vec4 outColor;
 

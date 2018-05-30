@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MolecularDynamics.Model", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MolecularDynamics.Tests", "MolecularDynamics.Tests\MolecularDynamics.Tests.csproj", "{05E91C84-D9CF-44B9-ADA1-691243ED8CC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.Visualization", "MolecularDynamics.Visualization\MolecularDynamics.Visualization.csproj", "{3127864C-E1B6-45E6-9733-9F5C1BACF210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MolecularDynamics.Visualization", "MolecularDynamics.Visualization\MolecularDynamics.Visualization.csproj", "{3127864C-E1B6-45E6-9733-9F5C1BACF210}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,8 +11,8 @@ namespace MolecularDynamics.Visualization
     internal class Program
     {
         private static readonly SimulationParameters Parameters = new SimulationParameters(
-            spaceSize: (6.5 * Wolfram.GridConstant, 6.5 * Wolfram.GridConstant, 14 * Wolfram.GridConstant),
-            cellCount: (14, 14, 28))
+            spaceSize: (10.5 * Wolfram.GridConstant, 10.5 * Wolfram.GridConstant, 21 * Wolfram.GridConstant),
+            cellCount: (20, 20, 40))
         {
             IntegrationStep = 0.1,
             DissipationCoefficient = 0.06 / 3.615,
@@ -20,8 +20,9 @@ namespace MolecularDynamics.Visualization
             ParticleMass = Wolfram.AtomMass,
             StaticCellLayerCount = 6,
             InteractionRadius = 4,
-            NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
-            Threads = 2
+            //NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
+            NewParticleVelocity = 0.6,
+            Threads = 4
         };
 
         private static Random random = new Random();
@@ -81,7 +82,8 @@ namespace MolecularDynamics.Visualization
                                                  Parameters.InteractionRadius,
                                                  Parameters.Threads);
 
-            particles = grid.GenerateWolframGrid((1.5, 1.5, 1.5), (6, 6, 12), Parameters);
+            particles = ParticleGenerator.GenerateWolframGrid((1.5, 1.5, 1.5), (10, 10, 20), Parameters.StaticCellLayerCount);
+            grid.AddParticles(particles);
 
             integrator = new TrajectoryIntegrator(grid, Parameters);
 

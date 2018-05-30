@@ -231,6 +231,18 @@ namespace MolecularDynamics.Model
         }
 
         /// <summary>
+        /// Заполняет сетку указанными частицами.
+        /// </summary>
+        /// <param name="particles">Список частиц.</param>
+        public void AddParticles(List<Particle> particles)
+        {
+            for (int i = 0; i < particles.Count; i++)
+            {
+                AddParticle(particles[i]);
+            }
+        }
+
+        /// <summary>
         /// Представляет ячейку сетки частиц.
         /// </summary>
         public class Cell

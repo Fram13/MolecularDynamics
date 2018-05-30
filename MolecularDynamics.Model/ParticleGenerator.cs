@@ -9,14 +9,13 @@ namespace MolecularDynamics.Model
     public static class ParticleGenerator
     {
         /// <summary>
-        /// Заполняет сетку атомами вольфрама, образующими ОЦК решетку.
+        /// Создает сетку атомов вольфрама, образующими ОЦК решетку.
         /// </summary>
-        /// <param name="grid">Заполняемая сетка.</param>
         /// <param name="startPosition">Начальная позиция атомов вольфрама.</param>
         /// <param name="cellCount">Количество ячеек ОЦК решетки вольфрама.</param>
-        /// <param name="parameters">Параметры моделирования частиц.</param>
+        /// <param name="staticLayerCellCount">Количество неподвижных слоев частиц.</param>
         /// <returns></returns>
-        public static List<Particle> GenerateWolframGrid(this ParticleGrid grid, Vector3 startPosition, (int X, int Y, int Z) cellCount, SimulationParameters parameters)
+        public static List<Particle> GenerateWolframGrid(Vector3 startPosition, (int X, int Y, int Z) cellCount, int staticLayerCellCount)
         {
             List<Particle> particles = new List<Particle>();
 
@@ -34,29 +33,15 @@ namespace MolecularDynamics.Model
                         Particle particle = new Wolfram()
                         {
                             Position = position,
-                            Static = z < parameters.StaticCellLayerCount
+                            Static = z < staticLayerCellCount
                         };
 
                         particles.Add(particle);
-                        grid.AddParticle(particle);
                     }
                 }
             }
 
             return particles;
-        }
-
-        /// <summary>
-        /// Заполняет сетку указанными частицами.
-        /// </summary>
-        /// <param name="grid">Заполняемая сетка.</param>
-        /// <param name="particles">Список частиц.</param>
-        public static void FillGrid(this ParticleGrid grid, List<Particle> particles)
-        {
-            for (int i = 0; i < particles.Count; i++)
-            {
-                grid.AddParticle(particles[i]);
-            }
         }
     }
 }

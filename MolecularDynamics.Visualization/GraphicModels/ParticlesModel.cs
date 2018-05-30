@@ -15,7 +15,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
         private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereVertexShader.glsl";
         private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereFragmentShader.glsl";
         private const int Layers = 10;
-        private const double MaxEnergy = 100.0;
+        private const double MaxEnergy = 0.1;
 
         private double sphereRadius;        
 
@@ -49,6 +49,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
         {
             this.sphereRadius = sphereRadius;
             this.particles = particles;
+            synchronizer = new Object();
         }
 
         /// <summary>
@@ -94,6 +95,9 @@ namespace MolecularDynamics.Visualization.GraphicModels
             
             positionBuffer = GL.GenBuffer();
             colorBuffer = GL.GenBuffer();
+
+            AllocateBuffers();
+            UpdateBuffers();
         }
 
         /// <summary>
@@ -116,19 +120,17 @@ namespace MolecularDynamics.Visualization.GraphicModels
             lock (synchronizer)
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, positionBuffer);
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * particles.Count * 3, positions, BufferUsageHint.StreamDraw); 
-                
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * particles.Count * 3, positions, BufferUsageHint.StreamDraw);
+                GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(1);
+                GL.VertexAttribDivisor(1, 1);
+
                 GL.BindBuffer(BufferTarget.ArrayBuffer, colorBuffer);
                 GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * particles.Count * 3, colors, BufferUsageHint.StreamDraw);
+                GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(2);
+                GL.VertexAttribDivisor(2, 1);
             }
-
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribDivisor(1, 1);
-            
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribDivisor(2, 1);
 
             GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, particles.Count);
         }
@@ -209,7 +211,7 @@ namespace MolecularDynamics.Visualization.GraphicModels
                 positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
                 positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
 
-                float intensity = (float)(particle.Energy() / MaxEnergy);
+                float intensity = Math.Min((float)(particle.Energy() / MaxEnergy), 1.0f);
 
                 colors[3 * i] = intensity;
                 colors[3 * i + 1] = 0.0f;
