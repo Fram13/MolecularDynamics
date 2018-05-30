@@ -14,13 +14,20 @@ namespace MolecularDynamics.Model
         public static double Temperature(this List<Particle> particles)
         {
             double avgVel = 0.0;
+            int count = 0;
 
             for (int i = 0; i < particles.Count; i++)
             {
+                if (particles[i].Static)
+                {
+                    continue;
+                }
+                
                 avgVel += particles[i].Velocity.NormSquared();
+                count++;
             }
 
-            avgVel /= particles.Count;
+            avgVel /= count;
 
             return Atoms.Wolfram.AtomMass * avgVel / 3.0 / Constants.BoltzmannConstant;
         }
