@@ -18,7 +18,7 @@ namespace MolecularDynamics.Visualization
             ParticleMass = Wolfram.AtomMass,
             StaticCellLayerCount = 6,
             InteractionRadius = 4,
-            Threads = 4
+            Threads = 2
         };
 
         private static Random random = new Random();

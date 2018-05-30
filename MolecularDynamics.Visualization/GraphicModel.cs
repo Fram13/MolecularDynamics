@@ -19,9 +19,8 @@ namespace MolecularDynamics.Visualization
         /// <summary>
         /// Отрисовывает графическую модель.
         /// <param name="viewModel">Видовая матрица визуализатора.</param>
-        /// <param name="parameters">Дополнительные параметры для отрисовки модели.</param>
         /// </summary>
-        public abstract void Render(ref Matrix4 viewModel, GraphicModelRenderingParameters parameters = null);
+        public abstract void Render(ref Matrix4 viewModel);
 
         /// <summary>
         /// Освобождает неуправляемые ресурсы.

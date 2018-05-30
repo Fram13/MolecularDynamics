@@ -1,34 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.0\MolecularDynamics.Visualization.xml</DocumentationFile>
   </PropertyGroup>
-
   <ItemGroup>
     <None Remove="Shaders\SpaceBorderFragmentShader.glsl" />
     <None Remove="Shaders\SpaceBorderVertexShader.glsl" />
     <None Remove="Shaders\SphereFragmentShader.glsl" />
     <None Remove="Shaders\SphereVertexShader.glsl" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Shaders\SphereFragmentShader.glsl" />
     <EmbeddedResource Include="Shaders\SphereVertexShader.glsl" />
     <EmbeddedResource Include="Shaders\SpaceBorderFragmentShader.glsl" />
     <EmbeddedResource Include="Shaders\SpaceBorderVertexShader.glsl" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="OpenTK.NETCore" Version="1.1.2749.6433" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\MolecularDynamics.Model\MolecularDynamics.Model.csproj" />
   </ItemGroup>
-
 </Project>

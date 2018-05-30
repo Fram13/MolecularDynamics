@@ -1,35 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using MolecularDynamics.Model;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace MolecularDynamics.Visualization.GraphicModels
 {
     /// <summary>
-    /// Представляет модель сферы.
+    /// Представляет графическую модель частиц.
     /// </summary>
-    public class Sphere : GraphicModel
+    public class ParticlesModel : GraphicModel
     {
         private const string VertexShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereVertexShader.glsl";
         private const string FragmentShaderResourceName = "MolecularDynamics.Visualization.Shaders.SphereFragmentShader.glsl";
         private const int Layers = 10;
+        private const double MaxEnergy = 100.0;
 
         private double sphereRadius;        
 
         private int vertexCount;
         private int shaderProgram;
         private int arrayBuffer;
-        private int positionBuffer;
         private int vertexBuffer;
         private int indexBuffer;
+        private int positionBuffer;
+        private int colorBuffer;
+
+        private float[] positions;
+        private float[] nextPositions;
+        private float[] colors;
+        private float[] nextColors;
+        private Object synchronizer;
+
+        private List<Particle> particles;
 
         /// <summary>
-        /// Создает новый экземпляр <see cref="Sphere"/>.
+        /// Обновляет характеристики визуализируемых частиц.
+        /// </summary>
+        public Action<List<Particle>> UpdateExternally { get; set; }
+
+        /// <summary>
+        /// Создает новый экземпляр <see cref="ParticlesModel"/>.
         /// </summary>
         /// <param name="sphereRadius">Радиус сферы.</param>
-        public Sphere(double sphereRadius)
+        /// <param name="particles">Список визуализируемых частиц.</param>
+        public ParticlesModel(double sphereRadius, List<Particle> particles)
         {
             this.sphereRadius = sphereRadius;
+            this.particles = particles;
         }
 
         /// <summary>
@@ -39,9 +58,10 @@ namespace MolecularDynamics.Visualization.GraphicModels
         {
             GL.DeleteProgram(shaderProgram);
             GL.DeleteVertexArray(arrayBuffer);
-            GL.DeleteBuffer(positionBuffer);
             GL.DeleteBuffer(vertexBuffer);
             GL.DeleteBuffer(indexBuffer);
+            GL.DeleteBuffer(positionBuffer);
+            GL.DeleteBuffer(colorBuffer);
         }
 
         /// <summary>
@@ -58,8 +78,6 @@ namespace MolecularDynamics.Visualization.GraphicModels
             shaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 
             arrayBuffer = GL.GenVertexArray();
-            positionBuffer = GL.GenBuffer();
-
             GL.BindVertexArray(arrayBuffer);
 
             //Копирование в память ГП данных о вершинах (вектора вершин и нормалей совпадают)
@@ -73,17 +91,17 @@ namespace MolecularDynamics.Visualization.GraphicModels
             indexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer);
             GL.BufferData(BufferTarget.ElementArrayBuffer, sizeof(int) * indicies.Length, indicies, BufferUsageHint.StaticDraw);
+            
+            positionBuffer = GL.GenBuffer();
+            colorBuffer = GL.GenBuffer();
         }
 
         /// <summary>
-        /// Отрисовывает графическую модель.
+        /// Отрисовывает частицы.
         /// <param name="viewModel">Видовая матрица визуализатора.</param>
-        /// <param name="parameters">Дополнительные параметры для отрисовки модели.</param>
         /// </summary>
-        public override void Render(ref Matrix4 viewModel, GraphicModelRenderingParameters parameters = null)
+        public override void Render(ref Matrix4 viewModel)
         {
-            RenderingParameters rp = (RenderingParameters)parameters;
-
             GL.UseProgram(shaderProgram);
 
             int viewModelLocation = GL.GetUniformLocation(shaderProgram, "viewModel");
@@ -95,20 +113,29 @@ namespace MolecularDynamics.Visualization.GraphicModels
 
             GL.BindVertexArray(arrayBuffer);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, positionBuffer);
-
-            lock (rp.PositionSynchronizer)
+            lock (synchronizer)
             {
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * rp.InstanceCount * 3, rp.Positions, BufferUsageHint.StreamDraw); 
+                GL.BindBuffer(BufferTarget.ArrayBuffer, positionBuffer);
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * particles.Count * 3, positions, BufferUsageHint.StreamDraw); 
+                
+                GL.BindBuffer(BufferTarget.ArrayBuffer, colorBuffer);
+                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * particles.Count * 3, colors, BufferUsageHint.StreamDraw);
             }
 
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribDivisor(1, 1);
+            
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribDivisor(2, 1);
 
-            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, rp.InstanceCount);
+            GL.DrawElementsInstanced(PrimitiveType.Quads, vertexCount, DrawElementsType.UnsignedInt, (IntPtr)0, particles.Count);
         }
 
+        /// <summary>
+        /// Генерирует сферу, представляющую частицу.
+        /// </summary>
         private (float[] VerticesComponents, int[] Indicies) GenerateSphere()
         {
             Dictionary<Vector3d, int> vertices = new Dictionary<Vector3d, int>();
@@ -159,24 +186,74 @@ namespace MolecularDynamics.Visualization.GraphicModels
         }
 
         /// <summary>
-        /// Представляет параметры отрисовки сферы.
+        /// Выделяет память для хранения позиций и цветов частиц. 
         /// </summary>
-        public class RenderingParameters : GraphicModelRenderingParameters
+        private void AllocateBuffers()
         {
-            /// <summary>
-            /// Массив компонент положений сфер.
-            /// </summary>
-            public float[] Positions { get; set; }
+            positions = new float[particles.Capacity * 3];
+            nextPositions = new float[particles.Capacity * 3];
+            colors = new float[particles.Capacity * 3];
+            nextColors = new float[particles.Capacity * 3];
+        }
 
-            /// <summary>
-            /// Количество сфер.
-            /// </summary>
-            public int InstanceCount { get; set; }
+        /// <summary>
+        /// Обновляет буферы позиций и цветов из списка частиц.
+        /// </summary>
+        private void UpdateBuffers()
+        {
+            for (int i = 0; i < particles.Count; i++)
+            {
+                Particle particle = particles[i];
 
-            /// <summary>
-            /// Объект синхронизации массива компонент положений сфер.
-            /// </summary>
-            public Object PositionSynchronizer { get; set; }
+                positions[3 * i] = (float)(particle.Position.X / 10.0);
+                positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
+                positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
+
+                float intensity = (float)(particle.Energy() / MaxEnergy);
+
+                colors[3 * i] = intensity;
+                colors[3 * i + 1] = 0.0f;
+                colors[3 * i + 2] = 1.0f - intensity;
+            }
+        }
+
+        /// <summary>
+        /// Обменивает буферы позиций и цветов.
+        /// </summary>
+        private void SwapBuffers()
+        {
+            lock (synchronizer)
+            {
+                float[] temp = positions;
+                positions = nextPositions;
+                nextPositions = temp;
+
+                temp = colors;
+                colors = nextColors;
+                nextColors = temp;
+            }
+        }
+
+        /// <summary>
+        /// Обновляет характеристики частиц.
+        /// </summary>
+        /// <param name="ct">Объект, сигнализирующий о необходимости прекратить выполнение операции.</param>
+        public void Update(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                int capacity = particles.Capacity;
+
+                UpdateExternally(particles);
+
+                if (particles.Capacity != capacity)
+                {
+                    AllocateBuffers();
+                }
+
+                UpdateBuffers();
+                SwapBuffers();
+            }
         }
     }
 }

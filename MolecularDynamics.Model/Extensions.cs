@@ -5,7 +5,7 @@ namespace MolecularDynamics.Model
     /// <summary>
     /// Представляет методы для вычисления параметров системы частиц.
     /// </summary>
-    public static class ParticleListExtensions
+    public static class Extensions
     {
         /// <summary>
         /// Вычисляет температуру системы частиц, К.
@@ -23,6 +23,16 @@ namespace MolecularDynamics.Model
             avgVel /= particles.Count;
 
             return Atoms.Wolfram.AtomMass * avgVel / 3.0 / Constants.BoltzmannConstant;
+        }
+
+        /// <summary>
+        /// Вычисляет кинетическую энергию частицы.
+        /// </summary>
+        /// <param name="particle">Частица, для которой необходимо вычислить кинетическую энергию.</param>
+        /// <returns></returns>
+        public static double Energy(this Particle particle)
+        {
+            return particle.Mass * particle.Velocity.NormSquared() / 2.0;
         }
     }
 }

@@ -17,27 +17,22 @@ namespace MolecularDynamics.Visualization
     {
         #region Fields
 
+        private ParticlesModel _particlesModel;
+        private SpaceBorder _spaceBorder;
+        
         private Matrix4 _viewModel;
-
-        private Object _positionsSynchronizer;
-        private float[] _positions;
-        private float[] _nextPositions;
-
-        private List<Particle> _particles;
-        private CancellationTokenSource _cts;
-
-        private GraphicModel _sphere;
-        private GraphicModel _spaceBorder;
-
-        private Sphere.RenderingParameters _sphereRenderingParameters;
+        private CancellationTokenSource _cts;       
 
         #endregion Fields
 
         /// <summary>
-        /// Обновляет частицы.
+        /// Обновляет характеристики визуализируемых частиц.
         /// </summary>
-        public Action<List<Particle>> UpdateParticlesExternally { get; set; }
-
+        public Action<List<Particle>> UpdateParticlesExternally
+        {
+            set => _particlesModel.UpdateExternally = value;
+        }
+        
         /// <summary>
         /// Обновляет статистику.
         /// </summary>
@@ -51,11 +46,8 @@ namespace MolecularDynamics.Visualization
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
         public ParticleVisualizer(List<Particle> particles, Model.Vector3 spaceSize, double sphereRadius)
         {
-            _particles = particles;            
-            _sphere = new Sphere(sphereRadius);
+            _particlesModel = new ParticlesModel(sphereRadius, particles);
             _spaceBorder = new SpaceBorder(spaceSize);
-            _sphereRenderingParameters = new Sphere.RenderingParameters();
-            _positionsSynchronizer = new Object();
 
             _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));           
             
@@ -73,7 +65,7 @@ namespace MolecularDynamics.Visualization
         /// </summary>
         protected override void Dispose(bool manual)
         {
-            _sphere.Dispose();
+            _particlesModel.Dispose();
             _spaceBorder.Dispose();
 
             base.Dispose(manual);
@@ -88,15 +80,8 @@ namespace MolecularDynamics.Visualization
             Height = 800;
             Title = "Визуализатор частиц";
 
-            AllocatePositionBuffers();
-            UpdatePositionBuffer();
-
-            _sphere.Initialize();
+            _particlesModel.Initialize();
             _spaceBorder.Initialize();
-
-            _sphereRenderingParameters.Positions = _positions;
-            _sphereRenderingParameters.InstanceCount = _particles.Count;
-            _sphereRenderingParameters.PositionSynchronizer = _positionsSynchronizer;
 
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -115,7 +100,7 @@ namespace MolecularDynamics.Visualization
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _sphere.Render(ref _viewModel, _sphereRenderingParameters);
+            _particlesModel.Render(ref _viewModel);
             _spaceBorder.Render(ref _viewModel);
             
             GL.BindVertexArray(0);
@@ -178,72 +163,6 @@ namespace MolecularDynamics.Visualization
         #region Private methods
 
         /// <summary>
-        /// Обменивает буферы компонент позиций частиц.
-        /// </summary>
-        private void SwapPositionsBuffers()
-        {
-            lock (_positionsSynchronizer)
-            {
-                float[] temp = _positions;
-                _positions = _nextPositions;
-                _nextPositions = temp;
-                _sphereRenderingParameters.Positions = _positions;
-            }
-        }
-
-        /// <summary>
-        /// Выполняет обновление списка частиц.
-        /// </summary>
-        /// <param name="ct">Объект, распространяющий уведомление о том, что операцию следует отменить.</param>
-        private void UpdateParticles(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                int count = _particles.Count;
-                int capacity = _particles.Capacity;
-
-                UpdateParticlesExternally(_particles);
-
-                if (_particles.Capacity != capacity)
-                {
-                    AllocatePositionBuffers();
-                }
-
-                if (_particles.Count != count)
-                {
-                    _sphereRenderingParameters.InstanceCount = _particles.Count;
-                }
-
-                UpdatePositionBuffer();
-                SwapPositionsBuffers();
-            }
-        }
-
-        /// <summary>
-        /// Выделяет память для буферов компонент положений частиц.
-        /// </summary>
-        private void AllocatePositionBuffers()
-        {
-            _positions = new float[_particles.Capacity * 3];
-            _nextPositions = new float[_particles.Capacity * 3];
-        }
-
-        /// <summary>
-        /// Обновляет текущий буфер компонент положений частиц.
-        /// </summary>
-        private void UpdatePositionBuffer()
-        {
-            for (int i = 0; i < _particles.Count; i++)
-            {
-                Particle particle = _particles[i];
-
-                _positions[3 * i] = (float)(particle.Position.X / 10.0);
-                _positions[3 * i + 1] = (float)(particle.Position.Y / 10.0);
-                _positions[3 * i + 2] = (float)(particle.Position.Z / 10.0);
-            }
-        }
-
-        /// <summary>
         /// Запускает или останавливает задачи, выполняющиеся параллельно визуализации.
         /// </summary>
         private void SwitchParallelTasks()
@@ -251,7 +170,7 @@ namespace MolecularDynamics.Visualization
             if (_cts == null || _cts.IsCancellationRequested)
             {
                 _cts = new CancellationTokenSource();
-                Task.Run(() => UpdateParticles(_cts.Token));
+                Task.Run(() => _particlesModel.Update(_cts.Token));
                 Task.Run(() => UpdateStatistics(_cts.Token));
             }
             else
