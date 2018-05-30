@@ -18,6 +18,7 @@ namespace MolecularDynamics.Visualization
             ParticleMass = Wolfram.AtomMass,
             StaticCellLayerCount = 6,
             InteractionRadius = 4,
+            NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
             Threads = 2
         };
 
@@ -46,7 +47,7 @@ namespace MolecularDynamics.Visualization
                 Particle particle = new Wolfram()
                 {
                     Position = position,
-                    Velocity = (0, 0, -0.4)
+                    Velocity = (0, 0, -Parameters.NewParticleVelocity)
                 };
 
                 grid.AddParticle(particle);

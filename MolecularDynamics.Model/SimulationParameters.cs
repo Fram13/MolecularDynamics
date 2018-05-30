@@ -51,6 +51,11 @@
         public double InteractionRadius;
 
         /// <summary>
+        /// Модуль скорости осаждающейся частицы, А / с.
+        /// </summary>
+        public double NewParticleVelocity;
+
+        /// <summary>
         /// Количество потоков вычислений.
         /// </summary>
         public int Threads;
