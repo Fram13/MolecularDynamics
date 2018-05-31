@@ -1,8 +1,11 @@
-﻿namespace MolecularDynamics.Model
+﻿using System;
+
+namespace MolecularDynamics.Model
 {
     /// <summary>
     /// Представляет параметры интегрирования траекторий частиц.
     /// </summary>
+    [Serializable]
     public class SimulationParameters
     {
         /// <summary>

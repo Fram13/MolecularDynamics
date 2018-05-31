@@ -20,8 +20,6 @@ namespace MolecularDynamics.Model
         private double temperature;
         private int staticCellLayerCount;
 
-        public ParticleGrid Grid => grid;
-
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
@@ -41,6 +39,13 @@ namespace MolecularDynamics.Model
             randomForce = Math.Sqrt(2.0 * dissipationCoefficient * Constants.BoltzmannConstant * particleMass * temperature / integrationStep);
 
             generator = new NormalDistribution();
+        }
+
+        public event EventHandler StepComplete;
+
+        protected void OnStepComplete()
+        {
+            StepComplete?.Invoke(this, null);
         }
 
         /// <summary>
@@ -116,6 +121,7 @@ namespace MolecularDynamics.Model
             });
 
             grid.RedistributeParticles();
+            OnStepComplete();
         }
 
         private Vector3 PairForce(Particle p1, Particle p2)

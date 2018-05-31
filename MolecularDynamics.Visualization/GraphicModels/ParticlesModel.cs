@@ -240,22 +240,15 @@ namespace MolecularDynamics.Visualization.GraphicModels
         /// Обновляет характеристики частиц.
         /// </summary>
         /// <param name="ct">Объект, сигнализирующий о необходимости прекратить выполнение операции.</param>
-        public void Update(CancellationToken ct)
+        public void Update(Object sender, EventArgs e)
         {
-            while (!ct.IsCancellationRequested)
+            if (particles.Capacity != positions.Length / 3)
             {
-                int capacity = particles.Capacity;
-
-                UpdateExternally(particles);
-
-                if (particles.Capacity != capacity)
-                {
-                    AllocateBuffers();
-                }
-
-                UpdateBuffers();
-                SwapBuffers();
+                AllocateBuffers();
             }
+
+            UpdateBuffers();
+            SwapBuffers();
         }
     }
 }
