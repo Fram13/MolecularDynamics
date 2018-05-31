@@ -65,7 +65,13 @@ namespace MolecularDynamics.Application
                 Threads = 4
             };
 
-            particles = ParticleGenerator.GenerateWolframGrid((1.5, 1.5, 1.5), (10, 10, 20), parameters.StaticCellLayerCount);
+            if (particles == null)
+            {
+                particles = new List<Particle>();
+            }
+
+            particles.Clear();
+            particles.AddRange(ParticleGenerator.GenerateWolframGrid((1.5, 1.5, 1.5), (10, 10, 20), parameters.StaticCellLayerCount));
         }
 
         private void InitializeComponents()
@@ -145,7 +151,14 @@ namespace MolecularDynamics.Application
                 {
                     BinaryFormatter bf = new BinaryFormatter();
                     parameters = (SimulationParameters)bf.Deserialize(stream);
-                    particles = (List<Particle>)bf.Deserialize(stream);
+
+                    if (particles == null)
+                    {
+                        particles = new List<Particle>();
+                    }
+
+                    particles.Clear();
+                    particles.AddRange((List<Particle>)bf.Deserialize(stream));
                 }
             }
 
