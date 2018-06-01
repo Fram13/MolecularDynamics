@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip = new System.Windows.Forms.ToolStrip();
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
@@ -107,6 +106,14 @@
             this.dataGridView.Size = new System.Drawing.Size(454, 500);
             this.dataGridView.TabIndex = 3;
             // 
+            // saveFileDialog
+            // 
+            this.saveFileDialog.Filter = "Бинарные файлы (*.bin)|*.bin";
+            // 
+            // openFileDialog
+            // 
+            this.openFileDialog.Filter = "Бинарные файлы (*.bin)|*.bin";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -116,7 +123,6 @@
             this.Controls.Add(this.toolStrip);
             this.Name = "MainForm";
             this.Text = "Моделирование процессов модификации металлических тонких пленок";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();

@@ -24,7 +24,7 @@ namespace MolecularDynamics.Model
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
         /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
-        /// <param name="parameters">Параметры интегрирования.</param>
+        /// <param name="parameters">Параметры моделирования.</param>
         public TrajectoryIntegrator(ParticleGrid grid, SimulationParameters parameters)
         {
             this.grid = grid;
@@ -110,11 +110,13 @@ namespace MolecularDynamics.Model
                         continue;
                     }
 
-                    particle.Force.AddToCurrent(RandomForce());
+                    particle.Free = !(particle.Force.NormSquared() > 0.0);
+
+                    particle.Force.AddToCurrent(particle.Free ? (0.0, 0.0, 0.0) : RandomForce());
                     particle.Force.MultiplyToCurrent(integrationStep / particle.Mass);
 
                     particle.Velocity.AddToCurrent(particle.Force);
-                    particle.Velocity.MultiplyToCurrent(velocityMultiplier);
+                    particle.Velocity.MultiplyToCurrent(particle.Free ? 1.0 : velocityMultiplier);
 
                     particle.Position.AddToCurrent(particle.Velocity * integrationStep);
                 }

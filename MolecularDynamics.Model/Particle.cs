@@ -28,7 +28,15 @@ namespace MolecularDynamics.Model
         /// </summary>
         public double Mass;
 
+        /// <summary>
+        /// Указывает, является ли частица неподвижной.
+        /// </summary>
         public bool Static;
+
+        /// <summary>
+        /// Указывает, участвует ли частица во взаимодействии с другими частицами.
+        /// </summary>
+        public bool Free;
 
         /// <summary>
         /// Возвращает величину взаимодействия пары частиц.

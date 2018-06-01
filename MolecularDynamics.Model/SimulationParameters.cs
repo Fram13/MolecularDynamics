@@ -59,6 +59,16 @@ namespace MolecularDynamics.Model
         public double NewParticleVelocity;
 
         /// <summary>
+        /// Общее время интегрирования.
+        /// </summary>
+        public double TotalTime;
+
+        /// <summary>
+        /// Период появления новых частиц в системе.
+        /// </summary>
+        public double ParticleAppearancePeriod;
+
+        /// <summary>
         /// Количество потоков вычислений.
         /// </summary>
         public int Threads;

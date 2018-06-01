@@ -57,28 +57,6 @@ namespace MolecularDynamics.Application
             glControl.SwapBuffers();
         }
 
-        private void GlControl_KeyDown(Object sender, KeyEventArgs e)
-        {
-            switch (e.KeyData)
-            {
-                case Keys.A:
-                    viewModel = viewModel * Matrix4.CreateTranslation(-0.05f, 0.0f, 0.0f);
-                    break;
-
-                case Keys.D:
-                    viewModel = viewModel * Matrix4.CreateTranslation(0.05f, 0.0f, 0.0f);
-                    break;
-
-                case Keys.W:
-                    viewModel = viewModel * Matrix4.CreateTranslation(0.0f, 0.05f, 0.0f);
-                    break;
-
-                case Keys.S:
-                    viewModel = viewModel * Matrix4.CreateTranslation(0.0f, -0.05f, 0.0f);
-                    break;
-            }
-        }
-
         private void GlControl_MouseMove(Object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -106,6 +84,28 @@ namespace MolecularDynamics.Application
             if (e.Delta != 0)
             {
                 viewModel = viewModel * Matrix4.CreateScale(e.Delta > 0 ? 1.1f : 0.9f);
+            }
+        }
+
+        private void glControl_PreviewKeyDown(Object sender, PreviewKeyDownEventArgs e)
+        {
+            switch (e.KeyData)
+            {
+                case Keys.Left:
+                    viewModel = viewModel * Matrix4.CreateTranslation(-0.05f, 0.0f, 0.0f);
+                    break;
+
+                case Keys.Right:
+                    viewModel = viewModel * Matrix4.CreateTranslation(0.05f, 0.0f, 0.0f);
+                    break;
+
+                case Keys.Up:
+                    viewModel = viewModel * Matrix4.CreateTranslation(0.0f, 0.05f, 0.0f);
+                    break;
+
+                case Keys.Down:
+                    viewModel = viewModel * Matrix4.CreateTranslation(0.0f, -0.05f, 0.0f);
+                    break;
             }
         }
 

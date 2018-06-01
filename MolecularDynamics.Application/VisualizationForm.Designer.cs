@@ -43,9 +43,9 @@
             this.glControl.VSync = true;
             this.glControl.Load += new System.EventHandler(this.GlControl_Load);
             this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.GlControl_Paint);
-            this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GlControl_KeyDown);
+            this.glControl.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseWheel);
             this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseMove);
-            this.glControl.MouseWheel += GlControl_MouseWheel;
+            this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.glControl_PreviewKeyDown);
             // 
             // timer
             // 
