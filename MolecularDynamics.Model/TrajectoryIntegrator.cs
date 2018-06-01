@@ -20,13 +20,11 @@ namespace MolecularDynamics.Model
         private double temperature;
         private int staticCellLayerCount;
 
-        public ParticleGrid Grid => grid;
-
         /// <summary>
         /// Создает новый экземпляр <see cref="TrajectoryIntegrator"/>.
         /// </summary>
         /// <param name="grid">Список частиц, образующих модерируемое вещество.</param>
-        /// <param name="parameters">Параметры интегрирования.</param>
+        /// <param name="parameters">Параметры моделирования.</param>
         public TrajectoryIntegrator(ParticleGrid grid, SimulationParameters parameters)
         {
             this.grid = grid;
@@ -41,6 +39,13 @@ namespace MolecularDynamics.Model
             randomForce = Math.Sqrt(2.0 * dissipationCoefficient * Constants.BoltzmannConstant * particleMass * temperature / integrationStep);
 
             generator = new NormalDistribution();
+        }
+
+        public event EventHandler StepComplete;
+
+        protected void OnStepComplete()
+        {
+            StepComplete?.Invoke(this, null);
         }
 
         /// <summary>
@@ -105,17 +110,20 @@ namespace MolecularDynamics.Model
                         continue;
                     }
 
-                    particle.Force.AddToCurrent(RandomForce());
+                    particle.Free = !(particle.Force.NormSquared() > 0.0);
+
+                    particle.Force.AddToCurrent(particle.Free ? (0.0, 0.0, 0.0) : RandomForce());
                     particle.Force.MultiplyToCurrent(integrationStep / particle.Mass);
 
                     particle.Velocity.AddToCurrent(particle.Force);
-                    particle.Velocity.MultiplyToCurrent(velocityMultiplier);
+                    particle.Velocity.MultiplyToCurrent(particle.Free ? 1.0 : velocityMultiplier);
 
                     particle.Position.AddToCurrent(particle.Velocity * integrationStep);
                 }
             });
 
             grid.RedistributeParticles();
+            OnStepComplete();
         }
 
         private Vector3 PairForce(Particle p1, Particle p2)

@@ -21,18 +21,15 @@ namespace MolecularDynamics.Visualization
         private SpaceBorder _spaceBorder;
         
         private Matrix4 _viewModel;
-        private CancellationTokenSource _cts;       
+        private CancellationTokenSource _cts;
 
         #endregion Fields
 
         /// <summary>
-        /// Обновляет характеристики визуализируемых частиц.
+        /// 
         /// </summary>
-        public Action<List<Particle>> UpdateParticlesExternally
-        {
-            set => _particlesModel.UpdateExternally = value;
-        }
-        
+        public Action<CancellationToken> UpdateParticles { get; set; }
+
         /// <summary>
         /// Обновляет статистику.
         /// </summary>
@@ -42,12 +39,15 @@ namespace MolecularDynamics.Visualization
         /// Создает новый экземпляр <see cref="ParticleVisualizer"/>.
         /// </summary>
         /// <param name="particles">Список визуализируемых частиц.</param>
+        /// <param name="integrator">Интегратор траекторий движения частиц.</param>
         /// <param name="spaceSize">Размеры пространства моделирования, А.</param>
         /// <param name="sphereRadius">Радиус частицы, нм.</param>
-        public ParticleVisualizer(List<Particle> particles, Model.Vector3 spaceSize, double sphereRadius)
+        public ParticleVisualizer(List<Particle> particles, TrajectoryIntegrator integrator, Model.Vector3 spaceSize, double sphereRadius)
         {
             _particlesModel = new ParticlesModel(sphereRadius, particles);
             _spaceBorder = new SpaceBorder(spaceSize);
+
+            integrator.StepComplete += _particlesModel.Update;
 
             _viewModel = Matrix4.CreateRotationX((float)(-Math.PI / 2.0));           
             
@@ -170,8 +170,8 @@ namespace MolecularDynamics.Visualization
             if (_cts == null || _cts.IsCancellationRequested)
             {
                 _cts = new CancellationTokenSource();
-                Task.Run(() => _particlesModel.Update(_cts.Token));
-                Task.Run(() => UpdateStatistics(_cts.Token));
+                Task.Run(() => UpdateParticles?.Invoke(_cts.Token));
+                Task.Run(() => UpdateStatistics?.Invoke(_cts.Token));
             }
             else
             {

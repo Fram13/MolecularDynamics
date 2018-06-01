@@ -20,8 +20,7 @@ namespace MolecularDynamics.Visualization
             ParticleMass = Wolfram.AtomMass,
             StaticCellLayerCount = 6,
             InteractionRadius = 4,
-            //NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
-            NewParticleVelocity = 0.6,
+            NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
             Threads = 4
         };
 
@@ -31,32 +30,34 @@ namespace MolecularDynamics.Visualization
         private static ParticleGrid grid;
         private static TrajectoryIntegrator integrator;
         private static double nextParticleTime;
-        private static double totalTime;
-        private static int realTotalTime;
+        private static int realTotalTime = 0;
 
-        private static void Integrate(List<Particle> particleList)
+        private static void Integrate(CancellationToken ct)
         {
-            integrator.NextStep();
-            nextParticleTime += Parameters.IntegrationStep;
-            totalTime += Parameters.IntegrationStep;
-
-            if (nextParticleTime > 400)
+            while (!ct.IsCancellationRequested)
             {
-                Vector3 position;
-                position.X = Parameters.SpaceSize.X * random.NextDouble();
-                position.Y = Parameters.SpaceSize.Y * random.NextDouble();
-                position.Z = Parameters.SpaceSize.Z - Wolfram.Radius;
+                integrator.NextStep();
+                nextParticleTime += Parameters.IntegrationStep;
+                Parameters.TotalTime += Parameters.IntegrationStep;
 
-                Particle particle = new Wolfram()
+                if (nextParticleTime > 400)
                 {
-                    Position = position,
-                    Velocity = (0, 0, -Parameters.NewParticleVelocity)
-                };
+                    Vector3 position;
+                    position.X = Parameters.SpaceSize.X * random.NextDouble();
+                    position.Y = Parameters.SpaceSize.Y * random.NextDouble();
+                    position.Z = Parameters.SpaceSize.Z - Wolfram.Radius;
 
-                grid.AddParticle(particle);
-                particleList.Add(particle);
+                    Particle particle = new Wolfram()
+                    {
+                        Position = position,
+                        Velocity = (0, 0, -Parameters.NewParticleVelocity)
+                    };
 
-                nextParticleTime = 0.0;
+                    grid.AddParticle(particle);
+                    particles.Add(particle);
+
+                    nextParticleTime = 0.0;
+                } 
             }
         }
 
@@ -66,7 +67,7 @@ namespace MolecularDynamics.Visualization
 
             while (!ct.IsCancellationRequested)
             {
-                Console.WriteLine($"{Math.Round(totalTime, 4)}\t\t{realTotalTime}\t\t{particles.Count}\t\t{Math.Round(particles.Temperature(), 4)}");
+                Console.WriteLine($"{Math.Round(Parameters.TotalTime, 4)}\t\t{realTotalTime}\t\t{particles.Count}\t\t{Math.Round(particles.Temperature(), 4)}");
                 Console.WriteLine();
 
                 Thread.Sleep(5000);
@@ -76,20 +77,15 @@ namespace MolecularDynamics.Visualization
 
         private static void Main(string[] args)
         {
-            grid = new ParticleGrid(Parameters.SpaceSize,
-                                                 Parameters.CellCount,
-                                                 Parameters.CellSize,
-                                                 Parameters.InteractionRadius,
-                                                 Parameters.Threads);
-
+            grid = new ParticleGrid(Parameters);
             particles = ParticleGenerator.GenerateWolframGrid((1.5, 1.5, 1.5), (10, 10, 20), Parameters.StaticCellLayerCount);
             grid.AddParticles(particles);
 
             integrator = new TrajectoryIntegrator(grid, Parameters);
 
-            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, Parameters.SpaceSize, Wolfram.Radius))
+            using (ParticleVisualizer particleVisualizer = new ParticleVisualizer(particles, integrator, Parameters.SpaceSize, Wolfram.Radius))
             {
-                particleVisualizer.UpdateParticlesExternally = Integrate;
+                particleVisualizer.UpdateParticles = Integrate;
                 particleVisualizer.UpdateStatistics = ShowStatistics;
 
                 particleVisualizer.Run(30);

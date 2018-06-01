@@ -19,19 +19,15 @@ namespace MolecularDynamics.Model
         /// <summary>
         /// Создает новый экземпляр <see cref="ParticleGrid"/>.
         /// </summary>
-        /// <param name="spaceSize">Размеры моделируемого пространства по трем измерениям.</param>
-        /// <param name="cellCount">Количество разбиений пространства по трем измерениям.</param>
-        /// <param name="cellSize">Размеры ячейки сетки.</param>
-        /// <param name="interactionRadius">Радиус взаимодействия частиц.</param>
-        /// <param name="threads">Количество потоков исполнения.</param>
-        public ParticleGrid(Vector3 spaceSize, (int X, int Y, int Z) cellCount, Vector3 cellSize, double interactionRadius, int threads)
+        /// <param name="parameters">Параметры моделирования.</param>
+        public ParticleGrid(SimulationParameters parameters)
         {            
-            _spaceSize = spaceSize;
-            _cellCount = cellCount;
-            _cellSize = cellSize;
-            _interactionRadiusSquared = interactionRadius * interactionRadius;            
-            _tasks = new Task[threads - 1];
-            _cells = new Cell[cellCount.X, cellCount.Y, cellCount.Z];
+            _spaceSize = parameters.SpaceSize;
+            _cellCount = parameters.CellCount;
+            _cellSize = parameters.CellSize;
+            _interactionRadiusSquared = parameters.InteractionRadius * parameters.InteractionRadius;
+            _tasks = new Task[parameters.Threads - 1];
+            _cells = new Cell[_cellCount.X, _cellCount.Y, _cellCount.Z];
 
             for (int i = 0; i < _cellCount.X; i++)
             {
