@@ -27,26 +27,6 @@ namespace MolecularDynamics.Application
             random = new Random();
         }
 
-        private void CreateConfiguration()
-        {
-            parameters = new SimulationParameters(
-                spaceSize: (10.5 * Wolfram.GridConstant, 10.5 * Wolfram.GridConstant, 21 * Wolfram.GridConstant),
-                cellCount: (20, 20, 40))
-            {
-                IntegrationStep = 0.1,
-                DissipationCoefficient = 0.06 / 3.615,
-                Temperature = 200,
-                ParticleMass = Wolfram.AtomMass,
-                StaticCellLayerCount = 6,
-                InteractionRadius = 4,
-                NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
-                ParticleAppearancePeriod = 400,
-                Threads = 4
-            };
-
-            particles = ParticleGenerator.GenerateWolframGrid((1.5, 1.5, 1.5), (10, 10, 20), parameters.StaticCellLayerCount);
-        }
-
         private void InitializeSimulationComponents()
         {
             particleGrid = new ParticleGrid(parameters);
@@ -74,7 +54,7 @@ namespace MolecularDynamics.Application
 
                 if (nextParticleTime > parameters.ParticleAppearancePeriod)
                 {
-                    Model.Vector3 position;
+                    Vector3 position;
                     position.X = parameters.SpaceSize.X * random.NextDouble();
                     position.Y = parameters.SpaceSize.Y * random.NextDouble();
                     position.Z = parameters.SpaceSize.Z - Wolfram.Radius;
@@ -93,11 +73,23 @@ namespace MolecularDynamics.Application
             }
         }
 
+        private void timer_Tick(Object sender, EventArgs e)
+        {
+            dataGridView.Rows.Add(parameters.TotalTime, particles.Count, Math.Round(particles.Temperature(), 4));
+        }
+
+        private void CreateConfiguration(SimulationParameters p, (int, int, int) cellCount)
+        {
+            parameters = p;
+            particles = ParticleGenerator.GenerateWolframGrid((0.7, 0.7, 0.7), cellCount, parameters.StaticCellLayerCount);
+        }
+
         #region ToolStrip event handlers
 
         private void CreateConfigurationToolStripMenuItem_Click(Object sender, EventArgs e)
         {
-            CreateConfiguration();
+            Form setupParamatersForm = new ParametersSetupForm(CreateConfiguration);
+            setupParamatersForm.ShowDialog();
             InitializeSimulationComponents();
 
             SaveConfigurationToolStripMenuItem.Enabled = true;
@@ -116,6 +108,8 @@ namespace MolecularDynamics.Application
             }
 
             InitializeSimulationComponents();
+
+            SaveConfigurationToolStripMenuItem.Enabled = true;
         }
 
         private void SaveConfigurationToolStripMenuItem_Click(Object sender, EventArgs e)
@@ -131,17 +125,19 @@ namespace MolecularDynamics.Application
             }
         }
 
-        private void startStopIntegrationButton_Click(Object sender, EventArgs e)
+        private void StartStopIntegrationButton_Click(Object sender, EventArgs e)
         {
             if (cts == null || cts.IsCancellationRequested)
             {
                 cts = new CancellationTokenSource();
                 Task.Run(() => Integrate(cts.Token));
+                timer.Enabled = true;
                 startStopIntegrationButton.Text = "Пауза";
             }
             else
             {
                 cts.Cancel();
+                timer.Enabled = false;
                 startStopIntegrationButton.Text = "Старт";
             }
         }

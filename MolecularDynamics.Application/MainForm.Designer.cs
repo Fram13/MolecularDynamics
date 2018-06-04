@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip = new System.Windows.Forms.ToolStrip();
             this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
@@ -36,8 +37,12 @@
             this.SaveConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startStopIntegrationButton = new System.Windows.Forms.ToolStripButton();
             this.dataGridView = new System.Windows.Forms.DataGridView();
+            this.TimeColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ParticleCountColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TemperatureColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.SuspendLayout();
@@ -49,7 +54,7 @@
             this.startStopIntegrationButton});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(694, 25);
+            this.toolStrip.Size = new System.Drawing.Size(481, 25);
             this.toolStrip.TabIndex = 2;
             this.toolStrip.Text = "toolStrip";
             // 
@@ -96,15 +101,39 @@
             this.startStopIntegrationButton.Name = "startStopIntegrationButton";
             this.startStopIntegrationButton.Size = new System.Drawing.Size(42, 22);
             this.startStopIntegrationButton.Text = "Старт";
-            this.startStopIntegrationButton.Click += new System.EventHandler(this.startStopIntegrationButton_Click);
+            this.startStopIntegrationButton.Click += new System.EventHandler(this.StartStopIntegrationButton_Click);
             // 
             // dataGridView
             // 
+            this.dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.TimeColumn,
+            this.ParticleCountColumn,
+            this.TemperatureColumn});
             this.dataGridView.Location = new System.Drawing.Point(12, 28);
             this.dataGridView.Name = "dataGridView";
+            this.dataGridView.ReadOnly = true;
             this.dataGridView.Size = new System.Drawing.Size(454, 500);
             this.dataGridView.TabIndex = 3;
+            // 
+            // TimeColumn
+            // 
+            this.TimeColumn.HeaderText = "Время, 1е-14 с";
+            this.TimeColumn.Name = "TimeColumn";
+            this.TimeColumn.ReadOnly = true;
+            // 
+            // ParticleCountColumn
+            // 
+            this.ParticleCountColumn.HeaderText = "Частиц";
+            this.ParticleCountColumn.Name = "ParticleCountColumn";
+            this.ParticleCountColumn.ReadOnly = true;
+            // 
+            // TemperatureColumn
+            // 
+            this.TemperatureColumn.HeaderText = "Температура, К";
+            this.TemperatureColumn.Name = "TemperatureColumn";
+            this.TemperatureColumn.ReadOnly = true;
             // 
             // saveFileDialog
             // 
@@ -114,11 +143,16 @@
             // 
             this.openFileDialog.Filter = "Бинарные файлы (*.bin)|*.bin";
             // 
+            // timer
+            // 
+            this.timer.Interval = 5000;
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(694, 550);
+            this.ClientSize = new System.Drawing.Size(481, 540);
             this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.toolStrip);
             this.Name = "MainForm";
@@ -142,6 +176,10 @@
         private System.Windows.Forms.DataGridView dataGridView;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TimeColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ParticleCountColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TemperatureColumn;
+        private System.Windows.Forms.Timer timer;
     }
 }
 

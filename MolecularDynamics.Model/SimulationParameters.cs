@@ -14,7 +14,7 @@ namespace MolecularDynamics.Model
         public readonly Vector3 CellSize;
 
         /// <summary>
-        /// Количество ячеек в сетке.
+        /// Количество вычислительных ячеек в сетке.
         /// </summary>
         public readonly (int X, int Y, int Z) CellCount;
         
@@ -77,7 +77,7 @@ namespace MolecularDynamics.Model
         /// Создает новый экземпляр <see cref="SimulationParameters"/>.
         /// </summary>
         /// <param name="spaceSize">Размеры пространства моделирования.</param>
-        /// <param name="cellCount">Количество ячеек в сетке.</param>
+        /// <param name="cellCount">Количество вычислительных ячеек в сетке.</param>
         public SimulationParameters(Vector3 spaceSize, (int X, int Y, int Z) cellCount)
         {
             SpaceSize = spaceSize;

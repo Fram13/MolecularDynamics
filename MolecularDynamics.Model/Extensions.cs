@@ -18,7 +18,7 @@ namespace MolecularDynamics.Model
 
             for (int i = 0; i < particles.Count; i++)
             {
-                if (particles[i].Static)
+                if (particles[i].Static || particles[i].Free)
                 {
                     continue;
                 }

@@ -43,8 +43,8 @@
             this.glControl.VSync = true;
             this.glControl.Load += new System.EventHandler(this.GlControl_Load);
             this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.GlControl_Paint);
-            this.glControl.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseWheel);
             this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseMove);
+            this.glControl.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.GlControl_MouseWheel);
             this.glControl.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.glControl_PreviewKeyDown);
             // 
             // timer
@@ -59,7 +59,7 @@
             this.ClientSize = new System.Drawing.Size(828, 823);
             this.Controls.Add(this.glControl);
             this.Name = "VisualizationForm";
-            this.Text = "VisualizationForm";
+            this.Text = "Визуализация";
             this.ResumeLayout(false);
 
         }
