@@ -111,7 +111,7 @@ namespace MolecularDynamics.Application
                 ParticleMass = Wolfram.AtomMass,
                 StaticCellLayerCount = staticLayerCount,
                 InteractionRadius = 5,
-                NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.MeltingPoint / Wolfram.AtomMass),
+                NewParticleVelocity = Math.Sqrt(3.0 * Constants.BoltzmannConstant * Wolfram.BoilingPoint / Wolfram.AtomMass),
                 ParticleAppearancePeriod = period,
                 Threads = threads
             };

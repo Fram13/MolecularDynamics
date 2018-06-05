@@ -24,9 +24,9 @@ namespace MolecularDynamics.Model.Atoms
         public const double GridConstant = 3.15;
 
         /// <summary>
-        /// Температура плавления, К.
+        /// Температура кипения, К.
         /// </summary>
-        public const double MeltingPoint = 3695.0;
+        public const double BoilingPoint = 5828.0;
 
         /// <summary>
         /// Создает новый экземпляр <see cref="Wolfram"/>.
