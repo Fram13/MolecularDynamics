@@ -76,28 +76,25 @@ namespace MolecularDynamics.Model
         {
             ForEachCell((cell, cellIndicies) =>
             {
-                IList<Particle> particles = cell.Particles;
-
-                for (int i = 0; i < particles.Count; i++)
+                lock (cell.SynchronizationObject)
                 {
-                    Particle particle = particles[i];
+                    IList<Particle> particles = cell.Particles;
 
-                    lock (particle)
-                    {                        
+                    for (int i = 0; i < particles.Count; i++)
+                    {
+                        Particle particle = particles[i];
+
                         var containingCell = GetContainingCell(ref particle.Position);
 
                         if (containingCell != cell)
                         {
-                            lock (particles)
+                            lock (containingCell.SynchronizationObject)
                             {
-                                lock (containingCell.Particles)
-                                {
-                                    particles.RemoveAt(i);
-                                    containingCell.Particles.Add(particle);
-                                }
+                                particles.RemoveAt(i);
+                                containingCell.Particles.Add(particle);
                             }
-                        } 
-                    }
+                        }
+                    } 
                 }
             });
         }
@@ -257,6 +254,8 @@ namespace MolecularDynamics.Model
             /// Список соседних ячеек.
             /// </summary>
             public IList<Cell> BoundaryCells { get; } = new List<Cell>();
+
+            public Object SynchronizationObject = new Object();
 
             /// <summary>
             /// Создает новый экземпляр <see cref="Cell"/>.
