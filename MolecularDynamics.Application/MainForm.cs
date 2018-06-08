@@ -39,7 +39,8 @@ namespace MolecularDynamics.Application
             }
 
             visualizationForm = new VisualizationForm(particles, Wolfram.Radius, parameters.SpaceSize, integrator);
-            visualizationForm.Show(this);
+            visualizationForm.FormClosed += VisualizationFormClosed;
+            visualizationForm.Show();
         }
 
         private void Integrate(CancellationToken ct)
@@ -69,19 +70,49 @@ namespace MolecularDynamics.Application
                     particles.Add(particle);
 
                     nextParticleTime = 0.0;
-                } 
+                }
             }
+        }
+
+        private void VisualizationFormClosed(Object sender, EventArgs e)
+        {
+            visualizationForm = null;
         }
 
         private void timer_Tick(Object sender, EventArgs e)
         {
             dataGridView.Rows.Add(parameters.TotalTime, particles.Count, Math.Round(particles.Temperature(), 4));
+            List<double> density = particles.LayersDensity(parameters);
+            Object[] cells = new Object[density.Count];
+
+            for (int i = 0; i < density.Count; i++)
+            {
+                cells[i] = Math.Round(density[i], 3);
+            }
+
+            densityDataGridView.Rows.Add(cells);
         }
 
         private void CreateConfiguration(SimulationParameters p, (int, int, int) cellCount)
         {
             parameters = p;
             particles = ParticleGenerator.GenerateWolframGrid((0.7, 0.7, 0.7), cellCount, parameters.StaticCellLayerCount);
+            CreateColumns();
+        }
+
+        private void CreateColumns()
+        {
+            int layers = (int)Math.Ceiling(parameters.SpaceSize.Z / Wolfram.GridConstant);
+
+            for (int i = 0; i < layers; i++)
+            {
+                densityDataGridView.Columns.Add(new DataGridViewTextBoxColumn()
+                {
+                    HeaderText = $"Слой {i + 1}",
+                    Name = $"Layer{i + 1}Column",
+                    ReadOnly = true
+                });
+            }
         }
 
         #region ToolStrip event handlers
@@ -108,6 +139,7 @@ namespace MolecularDynamics.Application
             }
 
             InitializeSimulationComponents();
+            CreateColumns();
 
             SaveConfigurationToolStripMenuItem.Enabled = true;
         }
@@ -139,6 +171,16 @@ namespace MolecularDynamics.Application
                 cts.Cancel();
                 timer.Enabled = false;
                 startStopIntegrationButton.Text = "Старт";
+            }
+        }
+
+        private void changeVisualizationToolStripButton_Click(Object sender, EventArgs e)
+        {
+            if (visualizationForm == null)
+            {
+                visualizationForm = new VisualizationForm(particles, Wolfram.Radius, parameters.SpaceSize, integrator);
+                visualizationForm.FormClosed += VisualizationFormClosed;
+                visualizationForm.Show();
             }
         }
 

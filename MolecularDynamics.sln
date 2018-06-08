@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.Visualization", "MolecularDynamics.Visualization\MolecularDynamics.Visualization.csproj", "{ACAEBA80-B855-4BFD-8C06-AAABA066BCAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MolecularDynamics.PerfomanceTests", "MolecularDynamics.PerfomanceTests\MolecularDynamics.PerfomanceTests.csproj", "{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{ACAEBA80-B855-4BFD-8C06-AAABA066BCAF}.Release|x64.Build.0 = Release|Any CPU
 		{ACAEBA80-B855-4BFD-8C06-AAABA066BCAF}.Release|x86.ActiveCfg = Release|Any CPU
 		{ACAEBA80-B855-4BFD-8C06-AAABA066BCAF}.Release|x86.Build.0 = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|x64.Build.0 = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Debug|x86.Build.0 = Debug|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|x64.ActiveCfg = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|x64.Build.0 = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|x86.ActiveCfg = Release|Any CPU
+		{56CE250B-6BC1-4676-AE88-2CFDDE0A6184}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

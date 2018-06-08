@@ -36,6 +36,7 @@
             this.LoadConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SaveConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startStopIntegrationButton = new System.Windows.Forms.ToolStripButton();
+            this.changeVisualizationToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.dataGridView = new System.Windows.Forms.DataGridView();
             this.TimeColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ParticleCountColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -43,18 +44,21 @@
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.densityDataGridView = new System.Windows.Forms.DataGridView();
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.densityDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStrip
             // 
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripDropDownButton1,
-            this.startStopIntegrationButton});
+            this.startStopIntegrationButton,
+            this.changeVisualizationToolStripButton});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(481, 25);
+            this.toolStrip.Size = new System.Drawing.Size(977, 25);
             this.toolStrip.TabIndex = 2;
             this.toolStrip.Text = "toolStrip";
             // 
@@ -103,6 +107,16 @@
             this.startStopIntegrationButton.Text = "Старт";
             this.startStopIntegrationButton.Click += new System.EventHandler(this.StartStopIntegrationButton_Click);
             // 
+            // changeVisualizationToolStripButton
+            // 
+            this.changeVisualizationToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.changeVisualizationToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("changeVisualizationToolStripButton.Image")));
+            this.changeVisualizationToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.changeVisualizationToolStripButton.Name = "changeVisualizationToolStripButton";
+            this.changeVisualizationToolStripButton.Size = new System.Drawing.Size(148, 22);
+            this.changeVisualizationToolStripButton.Text = "Включить визуализацию";
+            this.changeVisualizationToolStripButton.Click += new System.EventHandler(this.changeVisualizationToolStripButton_Click);
+            // 
             // dataGridView
             // 
             this.dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
@@ -148,11 +162,20 @@
             this.timer.Interval = 5000;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
+            // densityDataGridView
+            // 
+            this.densityDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.densityDataGridView.Location = new System.Drawing.Point(472, 28);
+            this.densityDataGridView.Name = "densityDataGridView";
+            this.densityDataGridView.Size = new System.Drawing.Size(493, 500);
+            this.densityDataGridView.TabIndex = 4;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(481, 540);
+            this.ClientSize = new System.Drawing.Size(977, 540);
+            this.Controls.Add(this.densityDataGridView);
             this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.toolStrip);
             this.Name = "MainForm";
@@ -160,6 +183,7 @@
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.densityDataGridView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -180,6 +204,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ParticleCountColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn TemperatureColumn;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.DataGridView densityDataGridView;
+        private System.Windows.Forms.ToolStripButton changeVisualizationToolStripButton;
     }
 }
 

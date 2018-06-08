@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using MolecularDynamics.Model.Atoms;
 
 namespace MolecularDynamics.Model
 {
@@ -40,6 +42,41 @@ namespace MolecularDynamics.Model
         public static double Energy(this Particle particle)
         {
             return particle.Mass * particle.Velocity.NormSquared() / 2.0;
+        }
+
+        /// <summary>
+        /// Вычисляет плотность вещества по слоям кристаллической решетки.
+        /// </summary>
+        /// <param name="particles">Список частиц, образующих систему частиц.</param>
+        /// <param name="parameters">Параметры моделирования.</param>
+        /// <returns></returns>
+        public static List<double> LayersDensity(this List<Particle> particles, SimulationParameters parameters)
+        {
+            int layers = (int)Math.Ceiling(parameters.SpaceSize.Z / Wolfram.GridConstant);
+            double layersVolume = Wolfram.GridConstant * parameters.SpaceSize.X * parameters.SpaceSize.Y;
+            double min = 0.0;
+            double max = Wolfram.GridConstant;
+            List<double> density = new List<double>();
+
+            for (int i = 0; i < layers; i++)
+            {
+                int count = 0;
+
+                for (int j = 0; j < particles.Count; j++)
+                {
+                    if (!(particles[j].Position.Z < min) && particles[j].Position.Z < max)
+                    {
+                        count++;
+                    }
+                }
+
+                density.Add(count * Wolfram.AtomMass / layersVolume);
+
+                min = max;
+                max += Wolfram.GridConstant;
+            }
+
+            return density;
         }
     }
 }
